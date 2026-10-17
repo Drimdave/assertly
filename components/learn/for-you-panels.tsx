@@ -15,7 +15,8 @@ import { executionSummary, statusCounts } from "@/lib/workspace/selectors"
 import { STATUSES, type Status } from "@/lib/workspace/types"
 
 const COMING_NEXT = [
-  { title: "Bug reports", body: "Log bugs and get scored against the defects hidden in the system under test." },
+  { title: "Test plans", body: "Write a plan with scope, risks and entry and exit criteria before you start testing." },
+  { title: "Exploratory sessions", body: "Time-boxed sessions with a charter and notes, tied to the bugs they find." },
 ]
 
 const SEGMENT: Record<Status, string> = {
@@ -68,31 +69,35 @@ function TestRunPanel() {
             </li>
           ))}
         </ul>
-        <Link
-          href={`/app/${DEFAULT_PROJECT_SLUG}/cases`}
-          className="flex items-center gap-2 rounded-md border px-3 py-2 text-sm transition-colors hover:bg-accent"
-        >
-          <span className="font-medium">Open test cases</span>
-          <ArrowRight className="ml-auto h-4 w-4 text-muted-foreground" aria-hidden />
-        </Link>
+        <div className="space-y-2">
+        {[
+          { href: `/app/${DEFAULT_PROJECT_SLUG}/requirements`, label: "Read the requirements" },
+          { href: `/app/${DEFAULT_PROJECT_SLUG}/cases`, label: "Open test cases" },
+          { href: `/app/${DEFAULT_PROJECT_SLUG}/bugs`, label: "Review bugs" },
+        ].map((l) => (
+          <Link key={l.href} href={l.href} className="flex items-center gap-2 rounded-md border px-3 py-2 text-sm transition-colors hover:bg-accent">
+            <span className="font-medium">{l.label}</span>
+            <ArrowRight className="ml-auto h-4 w-4 text-muted-foreground" aria-hidden />
+          </Link>
+        ))}
+        </div>
       </div>
     </Panel>
   )
 }
 
 function Metrics() {
-  const { ready, cases } = useProject(DEFAULT_PROJECT_SLUG)
-  const learn = useLearnState()
+  const { ready, cases, state } = useProject(DEFAULT_PROJECT_SLUG)
   const summary = executionSummary(cases)
   const counts = statusCounts(cases)
-  const overall = overallProgress(learn)
+  const bugs = state.bugs.filter((b) => b.projectSlug === DEFAULT_PROJECT_SLUG).length
   return (
     <MetricStrip
       metrics={[
         { label: "Executed", value: ready ? `${summary.executed} / ${summary.total}` : "–", hint: "test cases in NovaBank" },
         { label: "Pass rate", value: ready ? `${summary.passRate}%` : "–", hint: "of executed cases" },
         { label: "Failed", value: ready ? counts.failed : "–", tone: counts.failed > 0 ? "danger" : "default", hint: ready && counts.failed > 0 ? "need a bug report" : undefined },
-        { label: "Fundamentals", value: `${overall.completed} / ${overall.total}`, hint: "challenges complete" },
+        { label: "Bugs reported", value: ready ? bugs : "–", hint: ready && counts.failed > bugs ? "fewer than failed cases" : "in NovaBank" },
       ]}
     />
   )

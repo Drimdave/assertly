@@ -24,7 +24,9 @@ test.describe("test summary report", () => {
       "2Execution results",
       "3Requirement coverage",
       "4Failed test cases",
-      "5Risks and next steps",
+      "5Defects",
+      "6Hidden defect assessment",
+      "7Risks and next steps",
     ])
   })
 

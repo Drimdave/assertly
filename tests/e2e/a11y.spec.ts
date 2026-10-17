@@ -5,7 +5,10 @@ const PAGES = [
   { name: "for you", path: "/app" },
   { name: "fundamentals", path: "/learn" },
   { name: "a challenge", path: "/learn/email" },
+  { name: "requirements", path: "/app/novabank/requirements" },
   { name: "test cases", path: "/app/novabank/cases" },
+  { name: "bugs", path: "/app/novabank/bugs" },
+  { name: "NovaBank sign in", path: "/sandbox/novabank" },
   { name: "board", path: "/app/novabank/board" },
   { name: "test summary", path: "/app/novabank/report" },
 ]

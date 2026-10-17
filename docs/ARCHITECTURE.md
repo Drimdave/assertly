@@ -221,3 +221,23 @@ Phase 1 is complete. Deferred from the mockup to later phases: bug and seeded-de
 Bugs found and fixed while testing in the browser (board): the first dragover could fire before React re-rendered with the drag state and silently skip the move; keyboard dragging between lanes failed because lane droppables lacked the sortable metadata dnd-kit's keyboard helper reads.
 
 Bugs found and fixed while testing in the browser (table and drawer): Enter opened the drawer and the same keypress then activated the newly focused status button (fixed with preventDefault and by focusing the drawer container); shortcuts were ignored during the drawer's closing animation (now only open dialogs block them).
+
+## 12. Phase 2 progress (NovaBank sandbox and scoring)
+
+Done:
+- **Defect registry** (`lib/sandbox/novabank/bugs.ts`): ten seeded defects (1 critical, 3 high, 4 medium, 2 low) with severity, requirement, expected behavior, two hints, and text signals used for matching. This file is the answer key; nothing in it is shown to the tester until a defect is found or a hint is revealed.
+- **Engine** (`engine.ts`): NovaBank's behavior as pure functions (state in, state out). Each defect is a deliberate deviation switched on by an `active` set, and records a **bug hit** only when the faulty path actually runs. 39 unit tests check every defect with the switch on and off.
+- **Sandbox app** (`/sandbox/novabank/*`): sign in, accounts, transfer (form, review, confirm), activity, with its own layout and an "Assertly test environment" ribbon. State lives in a browser store (`assertly:sandbox:novabank:v1`), separate from the workspace. "Reset sandbox" keeps the hit log: that log is the tester's evidence.
+- **Bug model:** `BugReport` (key, title, severity, linked case, steps, expected, actual, environment) with reducer actions for create, update, delete and hint reveal. Old stored workspaces are migrated on load (empty bugs and hints).
+- **Scoring** (`lib/workspace/scoring.ts`, pure and tested): a report matches a defect when its text clears the signal rule (a strong signal counts 2, a weak one 1, at least one strong and a total of 3 or more; +1 if the linked case covers the same requirement). A match only earns points when the sandbox recorded a hit for that defect, otherwise it is "Not reproduced". A second report of the same defect is a "Duplicate". Quality is 0 to 10 (title, steps, expected, actual, linked case, correct severity). Points are the severity base (40/30/20/10) times (0.5 + quality/20). Each revealed hint costs 5 points; the total never goes below zero. Maximum is 230.
+- **Bugs page and report form**, prefilled from a failed test case (`?case=<id>`); a Defects section and a Hidden defect assessment in the test summary (found, triggered but not reported, not found, with hints); a Requirements page with acceptance criteria (`lib/workspace/requirements.ts`, kept out of the stored state so it needs no migration); a bugs metric on For you.
+- **Tests:** 178 unit tests; 95 end-to-end tests including the sandbox flows, scoring, hints, the new pages in the accessibility and dev-console checks.
+
+Decisions and notes:
+- The sandbox runs in the browser for now. Because the answer key ships to the client, a determined user could read it; that is acceptable for a practice tool and goes away when scoring moves to the server in Phase 3.
+- Sandbox state is local to one browser, like the workspace. Phase 3 stores both per user.
+- The summary shows only the requirement for a defect that has not been found. Severity and points appear once it is found or triggered.
+
+Bug found while building: a visually hidden label (`sr-only`, absolutely positioned) inside the scrolling content area escaped it and stretched the whole page, leaving a blank strip under the sidebar. Fixed by making the content area `relative`; guarded by an e2e test that reveals a hint and asserts the window never scrolls.
+
+Left for later in Phase 2/3: SMS alerts (REQ-04) are not implemented in the sandbox and are documented as untestable; more scenarios arrive in Phase 4.

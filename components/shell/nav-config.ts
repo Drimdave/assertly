@@ -1,4 +1,4 @@
-import { Bug, FileText, GraduationCap, Home, LayoutGrid, ListChecks, type LucideIcon } from "lucide-react"
+import { Bug, ClipboardList, FileText, GraduationCap, Home, LayoutGrid, ListChecks, type LucideIcon } from "lucide-react"
 
 import { DEFAULT_PROJECT_SLUG } from "@/lib/workspace/seed"
 
@@ -23,6 +23,7 @@ export function navGroups(project: string): NavGroup[] {
     {
       label: "Testing",
       items: [
+        { label: "Requirements", href: `/app/${project}/requirements`, icon: ClipboardList },
         { label: "Test cases", href: `/app/${project}/cases`, icon: ListChecks },
         { label: "Board", href: `/app/${project}/board`, icon: LayoutGrid },
         { label: "Bugs", href: `/app/${project}/bugs`, icon: Bug },
@@ -34,7 +35,7 @@ export function navGroups(project: string): NavGroup[] {
 
 /** The project the current URL belongs to, or the default one. */
 export function projectFromPath(pathname: string): string {
-  return pathname.match(/^\/app\/([^/]+)\/(?:cases|board|bugs|report)(?:\/|$)/)?.[1] ?? DEFAULT_PROJECT_SLUG
+  return pathname.match(/^\/app\/([^/]+)\/(?:requirements|cases|board|bugs|report)(?:\/|$)/)?.[1] ?? DEFAULT_PROJECT_SLUG
 }
 
 export function isActive(pathname: string, item: NavItem) {
