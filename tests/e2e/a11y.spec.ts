@@ -9,6 +9,8 @@ const PAGES = [
   { name: "test cases", path: "/app/novabank/cases" },
   { name: "bugs", path: "/app/novabank/bugs" },
   { name: "NovaBank sign in", path: "/sandbox/novabank" },
+  { name: "Assertly sign in", path: "/sign-in" },
+  { name: "Assertly sign up", path: "/sign-up" },
   { name: "board", path: "/app/novabank/board" },
   { name: "test summary", path: "/app/novabank/report" },
 ]

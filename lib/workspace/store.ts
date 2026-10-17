@@ -124,6 +124,15 @@ export const workspace = {
     return true
   },
 
+  /** Adopt a document loaded from the server. Clears undo: it must not roll back into someone else's data. */
+  replaceState(next: WorkspaceState) {
+    load()
+    previous = null
+    state = next
+    persist()
+    emit()
+  },
+
   /** Restore the starter project and discard all local changes. */
   reset() {
     load()

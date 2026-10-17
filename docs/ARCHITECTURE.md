@@ -241,3 +241,24 @@ Decisions and notes:
 Bug found while building: a visually hidden label (`sr-only`, absolutely positioned) inside the scrolling content area escaped it and stretched the whole page, leaving a blank strip under the sidebar. Fixed by making the content area `relative`; guarded by an e2e test that reveals a hint and asserts the window never scrolls.
 
 Left for later in Phase 2/3: SMS alerts (REQ-04) are not implemented in the sandbox and are documented as untestable; more scenarios arrive in Phase 4.
+
+## 13. Phase 3 progress (accounts, saving, share links)
+
+Done:
+- **Database** (`lib/db`): Drizzle ORM on Postgres. With `DATABASE_URL` it uses Neon over HTTP; without it, PGlite (Postgres compiled to WebAssembly) stored in `.data/pglite`, migrated on first use. One code path, no external service needed to develop or test. Nothing connects at import time, because Next imports route modules during the build. Schema: Better Auth's four tables, `workspace_doc` (one row per user holding the workspace and sandbox documents plus a revision number) and `share`. Migrations live in `drizzle/`; production applies them deliberately with `npm run db:migrate`.
+- **Accounts** (`lib/auth.ts`, `/api/auth/*`, `/sign-in`, `/sign-up`): Better Auth with email and password, GitHub when configured. Sessions are cookies. `?next=` only redirects within the site. Email verification is off until an email service exists.
+- **Saving** (`lib/persistence`, `/api/workspace`): the app stays local-first. Every change lands in the browser store at once; a controller copies it to the server about 800 ms later and again when the tab is hidden. Saves carry the revision they were based on; if another device saved first the server answers 409 and this device adopts the newer copy. The server validates and bounds everything it stores (zod, size caps, known defect ids) and accepts writes only from the same site.
+- **Claiming guest work:** on first sign-in the browser's workspace becomes the account's. If the account already has one, the server copy wins and this browser's copy is kept under `assertly:guest-backup:v1`. Signing out clears the browser's copy so the next person on a shared computer does not see it.
+- **Share links** (`/api/share`, `/s/[id]`): a frozen snapshot built on the server from the user's stored workspace, never from what a request carries. It holds the report, defects, score and found defects, and nothing about defects not found. Revocable by the owner only; an unknown or revoked link is a plain 404. `noindex`. Up to 20 active links per user.
+- The report was split into a hook-free `ReportDocument` so the live page and the public page render the same document.
+- **Tests:** 203 unit tests (repository against in-memory Postgres, including optimistic concurrency and revoke rules; payload validation; a leak test proving a snapshot excludes unfound defects; an on-disk database test) and 120 end-to-end tests (sign up and in, errors, claiming guest work, two devices, sign-out clearing, stale writes refused, anonymous access refused, share links public/read-only/revocable, only the owner can revoke, accessibility scans of the new pages in light and dark).
+
+Decisions and notes:
+- Scoring stays in the browser. The repository is public, so server-side scoring would not hide the answer key; the share snapshot is what must never leak it, and it does not. The cost is that a shared score is not tamper-proof.
+- A document per user (not normalized tables) because the app is built on one pure reducer over one state object; the server needs no knowledge of cases or bugs. Revisit if cross-user features (teams, leaderboards) arrive.
+- Bug found while checking in the real dev server: PGlite does not create its parent folder, so a fresh clone failed on first sign-in while every test (in memory) passed. Now fixed and covered by an on-disk test.
+- Postgres `jsonb` does not keep object key order, so a document read back differs textually from the same document in the browser. Documents are compared in a canonical (sorted-key) form; without it every page load looked like a change and announced "Loaded your saved workspace". The e2e check for this uses a one-time count, because `toHaveCount(0)` retries until the toast fades and passed even with the bug.
+- Accessibility finding: inline links distinguishable only by color failed WCAG (link-in-text-block). Now underlined.
+
+Left for later: email verification and password reset (needs an email service), per-session rate limit for the Fundamentals challenge submissions, merging guest work into an existing account instead of keeping a backup, and trying GitHub sign-in with real credentials.
+

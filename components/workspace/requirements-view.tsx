@@ -1,7 +1,9 @@
 "use client"
 
 import Link from "next/link"
+import { ArrowRight } from "lucide-react"
 
+import { Button } from "@/components/ui/button"
 import { Lozenge, type LozengeProps } from "@/components/ui/lozenge"
 import { StatusLozenge } from "@/components/workspace/status-lozenge"
 import { useProject } from "@/hooks/use-workspace"
@@ -34,16 +36,18 @@ export function RequirementsView({ projectSlug }: { projectSlug: string }) {
 
   return (
     <div className="mx-auto max-w-4xl space-y-6 px-4 py-8 sm:px-6">
-      <div className="flex flex-wrap items-end gap-3">
+      <div className="space-y-3">
         <div>
           <h1 className="text-heading-lg tracking-tight">Requirements</h1>
           <p className="text-sm text-muted-foreground">
             What {project?.name ?? "the system"} is supposed to do. Test against this, not against what you see on screen.
           </p>
         </div>
-        <a href="/sandbox/novabank" className="ml-auto text-sm text-primary hover:underline">
-          Open the NovaBank sandbox
-        </a>
+        <Button asChild variant="outline">
+          <Link href="/sandbox/novabank">
+            Start testing in the NovaBank sandbox <ArrowRight />
+          </Link>
+        </Button>
       </div>
 
       {!ready || !project ? (

@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { Logo } from "@/components/brand/logo"
 import { Lozenge } from "@/components/ui/lozenge"
+import { AccountMenu } from "@/components/shell/account-menu"
 import { ThemeToggle } from "@/components/shell/theme-toggle"
 import { isActive, navGroups, projectFromPath } from "@/components/shell/nav-config"
 
@@ -73,10 +74,7 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
 export function SidebarFooter() {
   return (
     <div className="mt-auto flex items-center gap-2 border-t pt-3">
-      <div className="min-w-0 flex-1 leading-tight">
-        <p className="text-sm font-medium">Guest</p>
-        <p className="text-xs text-muted-foreground">Progress is saved in this browser</p>
-      </div>
+      <AccountMenu />
       <ThemeToggle />
     </div>
   )

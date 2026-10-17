@@ -109,6 +109,11 @@ export const sandbox = {
     load()
     commit({ ...engine.initialState(), hits: state.hits })
   },
+  /** Adopt a document loaded from the server. */
+  replaceState(next: SandboxState) {
+    load()
+    commit(next)
+  },
   /** Wipes everything, including the bug-hit log. For starting a fresh attempt. */
   resetEverything() {
     load()

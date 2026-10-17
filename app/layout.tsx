@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
 import { IBM_Plex_Sans, JetBrains_Mono } from "next/font/google"
 
+import { SyncController } from "@/components/shell/sync-controller"
 import { Toaster } from "@/components/ui/sonner"
 import { themeInitScript } from "@/lib/theme"
 import "./globals.css"
@@ -23,6 +24,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       </head>
       <body className={`${sans.variable} ${mono.variable}`}>
         {children}
+        <SyncController />
         <Toaster />
       </body>
     </html>

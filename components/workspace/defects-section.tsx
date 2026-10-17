@@ -7,13 +7,20 @@ import { Lozenge, type LozengeProps } from "@/components/ui/lozenge"
 import { MetricStrip } from "@/components/ui/metric-strip"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { SeverityLozenge } from "@/components/workspace/severity-lozenge"
-import { HINT_COST, SEVERITY_POINTS } from "@/lib/sandbox/novabank/bugs"
+import { HINT_COST, SEVERITY_POINTS, type Severity } from "@/lib/sandbox/novabank/bugs"
 import type { Assessment, BugAssessment, ReportVerdict } from "@/lib/workspace/scoring"
 import { workspace } from "@/lib/workspace/store"
-import type { BugReport, TestCase } from "@/lib/workspace/types"
+import type { BugReport } from "@/lib/workspace/types"
 
-export function DefectsTable({ bugs, cases }: { bugs: BugReport[]; cases: TestCase[] }) {
-  if (bugs.length === 0) {
+export interface DefectRow {
+  key: string
+  title: string
+  severity: Severity
+  caseKey: string | null
+}
+
+export function DefectsTable({ rows }: { rows: DefectRow[] }) {
+  if (rows.length === 0) {
     return <p className="rounded-lg border border-dashed p-4 text-sm text-muted-foreground">No bugs reported.</p>
   }
   return (
@@ -28,14 +35,14 @@ export function DefectsTable({ bugs, cases }: { bugs: BugReport[]; cases: TestCa
           </TableRow>
         </TableHeader>
         <TableBody>
-          {bugs.map((b) => (
-            <TableRow key={b.id} className="hover:bg-transparent">
+          {rows.map((b) => (
+            <TableRow key={b.key} className="hover:bg-transparent">
               <TableCell className="font-mono text-xs text-muted-foreground">{b.key}</TableCell>
               <TableCell className="font-medium">{b.title}</TableCell>
               <TableCell>
                 <SeverityLozenge severity={b.severity} />
               </TableCell>
-              <TableCell className="font-mono text-xs text-muted-foreground">{cases.find((c) => c.id === b.caseId)?.key ?? "–"}</TableCell>
+              <TableCell className="font-mono text-xs text-muted-foreground">{b.caseKey ?? "–"}</TableCell>
             </TableRow>
           ))}
         </TableBody>

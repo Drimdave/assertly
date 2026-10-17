@@ -2,7 +2,7 @@
 
 A hands-on QA practice platform. Testers work the whole job (requirement, test plan, test cases, execution, bug reports, test summary) against realistic systems that contain hidden, seeded bugs, and get scored on what they find.
 
-> **Status: Phase 2 nearly complete.** The workspace (requirements, test cases, board, bugs, test summary) and the NovaBank sandbox with hidden, scored defects work today. Accounts and saving to a database come next, see [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+> **Status: Phase 3 in progress.** The workspace, the NovaBank sandbox with scored hidden defects, accounts, saving and share links work today. Next: more scenarios and the test plan editor, see [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 ## What works today
 
@@ -17,7 +17,10 @@ A hands-on QA practice platform. Testers work the whole job (requirement, test p
 - **Scoring** (in the test summary): each report is matched to a hidden defect by its wording, and only counts if the sandbox saw you trigger that defect. Points depend on severity and on how well the report is written. Duplicates earn nothing. Hints are available for defects you have not found and cost 5 points each.
 - **For you** (`/app`): your test run status, Fundamentals progress and what to do next.
 
-Your data is stored in your browser (no account). "Reset sample data" restores the starter project.
+- **Accounts and saving** (`/sign-in`, `/sign-up`): optional. As a guest your work stays in this browser. Sign up and it is saved to your account and follows you to any device; whatever you did as a guest becomes your workspace. Sign out and this browser is cleared. Email and password work out of the box; GitHub sign-in turns on when you configure it.
+- **Share links** (on the test summary): a public, read-only copy of your report that anyone can open without an account. Defects you have not found stay hidden in it. You can revoke a link at any time.
+
+"Reset sample data" restores the starter project.
 
 ## Getting started
 
@@ -28,10 +31,12 @@ npm install
 npm run dev
 ```
 
-Open the address that `next dev` prints (http://localhost:3000 by default).
+Open the address that `next dev` prints (http://localhost:3000 by default). Accounts work locally with no setup: without a `DATABASE_URL`, Assertly runs its own embedded Postgres (PGlite) in `.data/`. See [.env.example](.env.example) for production settings.
 
 | Script | What it does |
 |---|---|
+| `npm run db:generate` | Creates a migration after you change `lib/db/schema.ts` |
+| `npm run db:migrate` | Applies migrations to the database in `DATABASE_URL` (production) |
 | `npm run dev` | Start the dev server |
 | `npm run build` | Production build |
 | `npm run lint` | ESLint |
@@ -78,4 +83,7 @@ Tokens, density and component rules come from [docs/design/mockup-v4.html](docs/
 
 - The rate limit on challenge submissions is shared by every visitor (one in-memory counter). It becomes per-session in Phase 3, with accounts.
 - Build-time dev dependencies (the Tailwind 3 and ESLint chains) carry advisories with no non-breaking fix. They do not ship to users. Moving to Tailwind 4 is planned.
-- The hidden-defect answer key ships with the app, so a determined user could read it in the browser. That is fine for a practice tool; scoring moves to the server in Phase 3.
+- The hidden-defect answer key ships with the app (and the repository is public), so a determined user can read it. That is fine for a practice tool. A share link never contains it, but scores are computed from data the browser sends, so a shared score is not tamper-proof.
+- No email verification or password reset yet: both need an email service, which is not set up. Until then, a forgotten password cannot be recovered.
+- GitHub sign-in is wired but untested without real OAuth credentials.
+- Conflicts between two devices editing at once are resolved by taking the newer saved copy; the other device is told it was updated.

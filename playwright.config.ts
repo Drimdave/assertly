@@ -4,6 +4,10 @@ import { defineConfig, devices } from "@playwright/test"
 const PROD_PORT = 3100
 const DEV_PORT = 3101
 
+// Accounts need a database and an auth secret. Tests use an in-memory Postgres (PGlite), so nothing persists and
+// nothing external is touched. Auth rate limiting is off because the suite creates many accounts in seconds.
+const serverEnv = { PGLITE_DIR: "memory://", BETTER_AUTH_SECRET: "e2e-secret-e2e-secret-e2e-secret-0000", AUTH_RATE_LIMIT: "off" }
+
 export default defineConfig({
   testDir: "./tests/e2e",
   globalSetup: "./tests/e2e/global-setup.ts",
@@ -39,12 +43,14 @@ export default defineConfig({
         ? `npx next start -p ${PROD_PORT}`
         : `NEXT_DIST_DIR=.next-e2e-prod npm run build && NEXT_DIST_DIR=.next-e2e-prod npx next start -p ${PROD_PORT}`,
       url: `http://localhost:${PROD_PORT}`,
+      env: serverEnv,
       reuseExistingServer: !process.env.CI,
       timeout: 240_000,
     },
     {
       command: `NEXT_DIST_DIR=.next-e2e npx next dev -p ${DEV_PORT}`,
       url: `http://localhost:${DEV_PORT}`,
+      env: serverEnv,
       reuseExistingServer: !process.env.CI,
       timeout: 240_000,
     },

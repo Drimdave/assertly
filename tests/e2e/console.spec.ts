@@ -1,7 +1,7 @@
 import { expect, test, type Page } from "@playwright/test"
 
 // Runs against the dev server (see playwright.config.ts): React reports hydration mismatches and misuse only there.
-const PAGES = ["/app", "/learn", "/learn/email", "/app/novabank/requirements", "/app/novabank/bugs", "/sandbox/novabank", "/app/novabank/cases", "/app/novabank/board", "/app/novabank/report"]
+const PAGES = ["/app", "/learn", "/learn/email", "/app/novabank/requirements", "/app/novabank/bugs", "/sandbox/novabank", "/sign-in", "/sign-up", "/app/novabank/cases", "/app/novabank/board", "/app/novabank/report"]
 
 function watchConsole(page: Page) {
   const problems: string[] = []
