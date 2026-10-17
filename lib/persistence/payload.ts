@@ -2,7 +2,7 @@ import { z } from "zod"
 
 import { ALL_BUG_IDS, SEVERITIES, type BugId } from "@/lib/sandbox/novabank/bugs"
 import type { SandboxState } from "@/lib/sandbox/novabank/engine"
-import { PRIORITIES, STATUSES, type WorkspaceState } from "@/lib/workspace/types"
+import { PRIORITIES, STATUSES, TEST_TYPES, type WorkspaceState } from "@/lib/workspace/types"
 
 /**
  * What the server accepts from a client. The client owns the document (the app is local-first), so the server's
@@ -62,6 +62,29 @@ const activitySchema = z.object({
   fields: z.array(text(40)).max(20).optional(),
 })
 
+const planSchema = z.object({
+  id,
+  projectSlug: text(64),
+  title: text(200),
+  objective: text(3000),
+  inScope: z.array(text(20)).max(100),
+  outOfScope: text(2000),
+  approach: text(3000),
+  testTypes: z.array(z.enum(TEST_TYPES)).max(TEST_TYPES.length),
+  environment: text(1000),
+  entryCriteria: z.array(text(300)).max(30),
+  exit: z.object({
+    executedPercent: z.number().int().min(0).max(100),
+    passRate: z.number().int().min(0).max(100),
+    maxCritical: z.number().int().min(0).max(1000),
+    maxHigh: z.number().int().min(0).max(1000),
+    coverRequirements: z.boolean(),
+  }),
+  risks: z.array(z.object({ risk: text(300), mitigation: text(500) })).max(30),
+  createdAt: iso,
+  updatedAt: iso,
+})
+
 export const workspaceSchema = z.object({
   v: z.literal(1),
   seq: z.number().int().min(0),
@@ -72,6 +95,8 @@ export const workspaceSchema = z.object({
   bugs: z.array(bugSchema).max(500),
   hints: z.record(z.string().max(64), z.number().int().min(0).max(2)),
   nextBugNumber: z.record(z.string().max(64), z.number().int().min(1)),
+  // Documents saved before test plans existed have none
+  plans: z.array(planSchema).max(20).default([]),
 })
 
 const accountId = z.enum(["checking", "savings"])

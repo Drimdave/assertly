@@ -6,6 +6,7 @@ const PAGES = [
   { name: "fundamentals", path: "/learn" },
   { name: "a challenge", path: "/learn/email" },
   { name: "requirements", path: "/app/novabank/requirements" },
+  { name: "test plan (empty)", path: "/app/novabank/plan" },
   { name: "test cases", path: "/app/novabank/cases" },
   { name: "bugs", path: "/app/novabank/bugs" },
   { name: "NovaBank sign in", path: "/sandbox/novabank" },
@@ -33,6 +34,25 @@ for (const scheme of ["light", "dark"] as const) {
         expect(await scan(page)).toEqual([])
       })
     }
+
+    test("the test plan editor, with errors showing, has no violations", async ({ page }) => {
+      await page.goto("/app/novabank/plan")
+      await page.getByRole("button", { name: "Create from template" }).click()
+      await expect(page.getByLabel("Title")).toBeVisible()
+      await page.getByLabel("Title").fill("")
+      await page.getByRole("button", { name: "Save plan" }).click()
+      await expect(page.getByText("Give the plan a title")).toBeVisible()
+      expect(await scan(page)).toEqual([])
+    })
+
+    test("the summary with a plan has no violations", async ({ page }) => {
+      await page.goto("/app/novabank/plan")
+      await page.getByRole("button", { name: "Create from template" }).click()
+      await expect(page.getByLabel("Title")).toBeVisible()
+      await page.goto("/app/novabank/report")
+      await expect(page.getByRole("heading", { name: "Test plan and exit criteria" })).toBeVisible()
+      expect(await scan(page)).toEqual([])
+    })
 
     test("the case drawer has no violations", async ({ page }) => {
       await page.goto("/app/novabank/cases")

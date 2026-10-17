@@ -2,9 +2,11 @@ import { Lozenge, type LozengeProps } from "@/components/ui/lozenge"
 import { MetricStrip } from "@/components/ui/metric-strip"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { DefectsTable, type DefectRow } from "@/components/workspace/defects-section"
+import { PlanSummary } from "@/components/workspace/plan-section"
 import { PriorityLabel } from "@/components/workspace/priority-label"
 import { StatusLozenge } from "@/components/workspace/status-lozenge"
 import { cn } from "@/lib/utils"
+import type { PlanEvaluation } from "@/lib/workspace/plan"
 import type { CoverageState, TestReport, VerdictLevel } from "@/lib/workspace/report"
 import { STATUSES, STATUS_LABEL, type Status } from "@/lib/workspace/types"
 
@@ -60,13 +62,18 @@ export function ReportDocument({
   tester,
   defects,
   assessment,
+  plan = null,
 }: {
   report: TestReport
   tester: string
   defects: DefectRow[]
   assessment: React.ReactNode | null
+  plan?: PlanEvaluation | null
 }) {
   const t = report.totals
+  // Sections are numbered as they render, so optional ones (the plan, the assessment) never leave a gap
+  let n = 0
+  const next = () => ++n
   return (
     <>
     <dl className="grid grid-cols-2 gap-x-8 gap-y-2 text-sm sm:grid-cols-4">
@@ -83,7 +90,7 @@ export function ReportDocument({
       ))}
     </dl>
 
-    <Section index={1} title="Summary">
+    <Section index={next()} title="Summary">
       <div className={cn("rounded-lg border border-l-4 bg-subtle p-4", VERDICT_BORDER[report.verdict.level])}>
         <p className="text-heading-sm">{report.verdict.headline}</p>
         <p className="mt-1 text-sm text-muted-foreground">{report.verdict.detail}</p>
@@ -98,7 +105,13 @@ export function ReportDocument({
       />
     </Section>
 
-    <Section index={2} title="Execution results">
+    {plan && (
+      <Section index={next()} title="Test plan and exit criteria">
+        <PlanSummary plan={plan} />
+      </Section>
+    )}
+
+    <Section index={next()} title="Execution results">
       <div className="overflow-hidden rounded-lg border">
         <Table>
           <TableBody>
@@ -121,7 +134,7 @@ export function ReportDocument({
       </div>
     </Section>
 
-    <Section index={3} title="Requirement coverage">
+    <Section index={next()} title="Requirement coverage">
       <div className="overflow-hidden rounded-lg border">
         <Table>
           <TableHeader>
@@ -177,7 +190,7 @@ export function ReportDocument({
       </ul>
     </Section>
 
-    <Section index={4} title="Failed test cases">
+    <Section index={next()} title="Failed test cases">
       {report.failures.length === 0 ? (
         <p className="rounded-lg border border-dashed p-4 text-sm text-muted-foreground">No failed test cases.</p>
       ) : (
@@ -208,17 +221,17 @@ export function ReportDocument({
       )}
     </Section>
 
-    <Section index={5} title="Defects">
+    <Section index={next()} title="Defects">
       <DefectsTable rows={defects} />
     </Section>
 
     {assessment && (
-      <Section index={6} title="Hidden defect assessment">
+      <Section index={next()} title="Hidden defect assessment">
         {assessment}
       </Section>
     )}
 
-    <Section index={assessment ? 7 : 6} title="Risks and next steps">
+    <Section index={next()} title="Risks and next steps">
       <div className="grid gap-6 sm:grid-cols-2">
         <div>
           <h3 className="mb-2 text-heading-xs">Risks</h3>

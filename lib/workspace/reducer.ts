@@ -1,4 +1,4 @@
-import type { ActivityEntry, BugInput, BugReport, CaseInput, Status, TestCase, WorkspaceState } from "./types"
+import type { ActivityEntry, BugInput, BugReport, CaseInput, PlanInput, TestPlan, Status, TestCase, WorkspaceState } from "./types"
 
 export type Action =
   | { type: "case/create"; at: string; projectSlug: string; input: CaseInput }
@@ -12,6 +12,8 @@ export type Action =
   | { type: "bug/delete"; id: string }
   /** Reveals the next hint for a seeded bug (max 2). Costs points when scored. */
   | { type: "hint/reveal"; bugId: string }
+  /** Creates the project's test plan, or replaces its contents. */
+  | { type: "plan/save"; at: string; projectSlug: string; input: PlanInput }
 
 const pad = (n: number) => String(n).padStart(3, "0")
 
@@ -146,6 +148,26 @@ export function reduce(state: WorkspaceState, action: Action): WorkspaceState {
     case "bug/delete": {
       if (!state.bugs.some((b) => b.id === action.id)) return state
       return { ...state, bugs: state.bugs.filter((b) => b.id !== action.id) }
+    }
+
+    case "plan/save": {
+      const existing = state.plans.find((p) => p.projectSlug === action.projectSlug)
+      if (!existing) {
+        const created: TestPlan = {
+          id: `p${state.seq + 1}`,
+          projectSlug: action.projectSlug,
+          ...action.input,
+          createdAt: action.at,
+          updatedAt: action.at,
+        }
+        return { ...state, seq: state.seq + 1, plans: [...state.plans, created] }
+      }
+      const changed = (Object.keys(action.input) as (keyof PlanInput)[]).some((f) => !sameJson(action.input[f], existing[f]))
+      if (!changed) return state
+      return {
+        ...state,
+        plans: state.plans.map((p) => (p.id === existing.id ? { ...existing, ...action.input, updatedAt: action.at } : p)),
+      }
     }
 
     case "hint/reveal": {

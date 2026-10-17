@@ -84,6 +84,58 @@ export interface BugReport {
 /** Editable fields of a bug report. */
 export type BugInput = Omit<BugReport, "id" | "key" | "projectSlug" | "createdAt" | "updatedAt">
 
+export const TEST_TYPES = ["functional", "negative", "boundary", "security", "usability", "accessibility", "regression"] as const
+export type TestType = (typeof TEST_TYPES)[number]
+
+export const TEST_TYPE_LABEL: Record<TestType, string> = {
+  functional: "Functional",
+  negative: "Negative and validation",
+  boundary: "Boundary values",
+  security: "Security",
+  usability: "Usability",
+  accessibility: "Accessibility",
+  regression: "Regression",
+}
+
+/** Measurable conditions that decide whether testing may stop. The test summary checks them against real results. */
+export interface ExitCriteria {
+  /** Minimum percentage of in-scope test cases that must be executed (passed or failed). */
+  executedPercent: number
+  /** Minimum pass rate among executed in-scope cases. */
+  passRate: number
+  maxCritical: number
+  maxHigh: number
+  /** Every in-scope requirement has at least one test case. */
+  coverRequirements: boolean
+}
+
+export interface PlanRisk {
+  risk: string
+  mitigation: string
+}
+
+/** One test plan per project: what will be tested, how, and when testing is done. */
+export interface TestPlan {
+  id: string
+  projectSlug: string
+  title: string
+  objective: string
+  /** Requirement keys in scope. */
+  inScope: string[]
+  outOfScope: string
+  approach: string
+  testTypes: TestType[]
+  environment: string
+  entryCriteria: string[]
+  exit: ExitCriteria
+  risks: PlanRisk[]
+  createdAt: string
+  updatedAt: string
+}
+
+/** Editable fields of a test plan. */
+export type PlanInput = Omit<TestPlan, "id" | "projectSlug" | "createdAt" | "updatedAt">
+
 export interface WorkspaceState {
   v: 1
   /** Monotonic counter used to mint ids, so the reducer stays pure and deterministic. */
@@ -98,6 +150,7 @@ export interface WorkspaceState {
   hints: Record<string, number>
   /** project slug -> next BUG number */
   nextBugNumber: Record<string, number>
+  plans: TestPlan[]
 }
 
 /** Editable fields of a test case. */

@@ -15,8 +15,8 @@ import { executionSummary, statusCounts } from "@/lib/workspace/selectors"
 import { STATUSES, type Status } from "@/lib/workspace/types"
 
 const COMING_NEXT = [
-  { title: "Test plans", body: "Write a plan with scope, risks and entry and exit criteria before you start testing." },
   { title: "Exploratory sessions", body: "Time-boxed sessions with a charter and notes, tied to the bugs they find." },
+  { title: "More systems to test", body: "Further practice systems with their own hidden defects, beyond NovaBank." },
 ]
 
 const SEGMENT: Record<Status, string> = {
@@ -72,6 +72,7 @@ function TestRunPanel() {
         <div className="space-y-2">
         {[
           { href: `/app/${DEFAULT_PROJECT_SLUG}/requirements`, label: "Read the requirements" },
+          { href: `/app/${DEFAULT_PROJECT_SLUG}/plan`, label: "Write the test plan" },
           { href: `/app/${DEFAULT_PROJECT_SLUG}/cases`, label: "Open test cases" },
           { href: `/app/${DEFAULT_PROJECT_SLUG}/bugs`, label: "Review bugs" },
         ].map((l) => (

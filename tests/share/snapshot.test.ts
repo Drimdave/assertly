@@ -5,7 +5,8 @@ import { NOVABANK_BUGS } from "@/lib/sandbox/novabank/bugs"
 import { initialState } from "@/lib/sandbox/novabank/engine"
 import { buildShareSnapshot } from "@/lib/share/snapshot"
 import { reduce } from "@/lib/workspace/reducer"
-import { createSeedState } from "@/lib/workspace/seed"
+import { planTemplate } from "@/lib/workspace/plan"
+import { createSeedState, NOVABANK } from "@/lib/workspace/seed"
 
 const NOW = new Date("2026-02-01T10:00:00Z")
 
@@ -58,6 +59,19 @@ describe("share snapshot", () => {
     }
     // The revealed hint belongs to the tester, but its text is not part of what is shared either
     expect(json).not.toContain("Limits usually count something over time")
+  })
+
+  it("includes the plan evaluation when the project has a plan, and none when it does not", () => {
+    const { workspace, sandbox } = withFoundNegativeAmount()
+    const none = buildShareSnapshot({ workspace, sandbox, projectSlug: "novabank", tester: "Ada", now: NOW })!
+    expect(none.plan).toBeNull()
+
+    const withPlan = reduce(workspace, { type: "plan/save", at: NOW.toISOString(), projectSlug: "novabank", input: planTemplate(NOVABANK) })
+    const snap = buildShareSnapshot({ workspace: withPlan, sandbox, projectSlug: "novabank", tester: "Ada", now: NOW })!
+    expect(snap.plan?.title).toBe("NovaBank Transfers test plan")
+    expect(snap.plan?.allMet).toBe(false)
+    expect(snap.plan?.criteria.map((c) => c.id)).toContain("critical") // the reported critical bug counts
+    expect(snap.plan?.criteria.find((c) => c.id === "critical")?.met).toBe(false)
   })
 
   it("survives a JSON round trip (it is stored as JSON)", () => {

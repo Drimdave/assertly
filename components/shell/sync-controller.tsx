@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react"
 import { toast } from "sonner"
 
-import { startSync, stopSync } from "@/lib/persistence/sync"
+import { clearSyncMeta, startSync, stopSync } from "@/lib/persistence/sync"
 import { useSession } from "@/lib/auth-client"
 import { sandbox } from "@/lib/sandbox/novabank/store"
 import { workspace } from "@/lib/workspace/store"
@@ -24,12 +24,13 @@ export function SyncController() {
         wasSignedIn.current = false
         workspace.reset()
         sandbox.resetEverything()
+        clearSyncMeta()
       }
       return
     }
     wasSignedIn.current = true
     let cancelled = false
-    void startSync((message) => {
+    void startSync(userId, (message) => {
       if (!cancelled) toast(message)
     })
     return () => {

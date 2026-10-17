@@ -262,3 +262,19 @@ Decisions and notes:
 
 Left for later: email verification and password reset (needs an email service), per-session rate limit for the Fundamentals challenge submissions, merging guest work into an existing account instead of keeping a backup, and trying GitHub sign-in with real credentials.
 
+## 14. Phase 4 progress (depth)
+
+Order agreed: test plan editor, then exploratory sessions, then a second scenario.
+
+**Test plan editor (done)**
+- **Model:** one `TestPlan` per project (`plans` in the workspace document): title, objective, requirements in scope, out of scope, approach, types of testing, environment, entry criteria, risks, and structured `ExitCriteria` (executed percentage, pass rate, maximum critical and high bugs, every in-scope requirement has a case). Reducer action `plan/save` creates or replaces; saving unchanged content returns the same state.
+- **Closing the loop:** `evaluatePlan` (pure, `lib/workspace/plan.ts`) checks exit criteria against real results. Execution and pass rate count only cases linked to in-scope requirements; bug counts are project-wide; an empty scope never counts as a pass. The plan page shows the live status, the test summary gets a "Test plan and exit criteria" section with a Met / Not met table and an overall verdict, and a share link carries the same section.
+- **Template:** `planTemplate(project)` gives a sensible starting plan (project-specific for NovaBank, including the SMS-gateway risk for REQ-04), so a tester edits instead of facing a blank page.
+- **Migration:** `migrateWorkspace` (new, `lib/workspace/migrate.ts`) fills in fields that older saved documents lack. It now runs on every load from the browser and from the server; before, a document saved by an older version and read back from the server would not have been migrated. Add a line there whenever a field is added. The server schema defaults `plans` to `[]`.
+- **Form UX:** validation runs on Save and then live as you fix things, not on blur. Blur validation inserted an error message above the control about to be clicked, shifting the page between mouse-down and mouse-up so the click missed (found by an e2e test). The report's sections are now numbered as they render, so optional sections never leave a gap.
+- **Tests:** unit tests for the template, reducer, evaluation (scope, thresholds, empty scope, optional criterion), form schema, migration, payload and snapshot; 11 e2e tests for the editor and the summary, including a critical bug breaking otherwise-passing results; accessibility scans of the empty page, the editor with errors, and the summary with a plan, in light and dark.
+
+**Data-loss race found and fixed in saving (affects every feature):** a change made and followed within the first second by a full page load (a typed address, a hard refresh, a link that is not a client navigation) was lost: the new page asked the server, saw an older copy than the browser's, and adopted it. Two safeguards now work together. (1) The page sends a last-gasp save on `pagehide` and when hidden. (2) The browser records what it knows about the server in `assertly:sync:v1` (account, last revision seen, whether it holds unsent changes) and also notices changes made while the server copy is still loading; on the next load, if the browser holds unsent changes and nobody else has saved since, it sends its copy instead of adopting the server's. Each safeguard alone masked the other in tests, so the e2e tests were verified against both removed; a separate test sets up "unsent work left by an earlier visit" directly. A server copy that is ahead (another device saved) still wins, and the browser's copy is kept under `assertly:guest-backup:v1`.
+
+**Next:** exploratory sessions, then a second scenario.
+

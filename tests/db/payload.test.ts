@@ -11,6 +11,26 @@ describe("PUT payload validation", () => {
     expect(putSchema.safeParse(valid()).success).toBe(true)
   })
 
+  it("accepts a document saved before test plans existed, and gives it none", () => {
+    const old = valid() as unknown as { workspace: Record<string, unknown> }
+    delete old.workspace.plans
+    const parsed = putSchema.safeParse(old)
+    expect(parsed.success).toBe(true)
+    expect(parsed.success && parsed.data.workspace.plans).toEqual([])
+  })
+
+  it("rejects a plan with out-of-range exit criteria", () => {
+    const bad = valid()
+    bad.workspace.plans = [
+      {
+        id: "p1", projectSlug: "novabank", title: "t", objective: "o", inScope: [], outOfScope: "", approach: "a", testTypes: [],
+        environment: "", entryCriteria: [], risks: [], createdAt: "x", updatedAt: "x",
+        exit: { executedPercent: 120, passRate: 90, maxCritical: 0, maxHigh: 0, coverRequirements: true },
+      },
+    ]
+    expect(putSchema.safeParse(bad).success).toBe(false)
+  })
+
   it("rejects wrong types and unknown enum values", () => {
     const bad = valid()
     ;(bad.workspace.cases[0] as { status: string }).status = "done"

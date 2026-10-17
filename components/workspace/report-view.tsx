@@ -12,6 +12,7 @@ import { ShareButton } from "@/components/workspace/share-panel"
 import { useIsClient } from "@/hooks/use-is-client"
 import { useSandboxState } from "@/hooks/use-sandbox"
 import { useProject } from "@/hooks/use-workspace"
+import { evaluatePlan } from "@/lib/workspace/plan"
 import { buildReport } from "@/lib/workspace/report"
 import { assess } from "@/lib/workspace/scoring"
 
@@ -27,6 +28,10 @@ export function ReportView({ projectSlug }: { projectSlug: string }) {
   const sandbox = useSandboxState()
   const bugs = useMemo(() => state.bugs.filter((b) => b.projectSlug === projectSlug), [state.bugs, projectSlug])
   const assessment = useMemo(() => assess(bugs, cases, sandbox.hits, state.hints), [bugs, cases, sandbox.hits, state.hints])
+  const planEvaluation = useMemo(() => {
+    const plan = state.plans.find((p) => p.projectSlug === projectSlug)
+    return plan && project ? evaluatePlan(plan, project, cases, bugs) : null
+  }, [state.plans, projectSlug, project, cases, bugs])
   const defects = useMemo(
     () => bugs.map((b) => ({ key: b.key, title: b.title, severity: b.severity, caseKey: cases.find((c) => c.id === b.caseId)?.key ?? null })),
     [bugs, cases],
@@ -77,6 +82,7 @@ export function ReportView({ projectSlug }: { projectSlug: string }) {
           report={report}
           tester="Guest"
           defects={defects}
+          plan={planEvaluation}
           assessment={project?.slug === "novabank" ? <AssessmentSection assessment={assessment} bugs={bugs} /> : null}
         />
       )}

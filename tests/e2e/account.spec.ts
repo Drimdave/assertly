@@ -126,6 +126,54 @@ test.describe("accounts and saving", () => {
     await other.context.close()
   })
 
+  test("a change followed at once by a full page load is not lost", async ({ page }) => {
+    await signUp(page)
+    await page.goto("/app/novabank/cases")
+    await expect(page.getByRole("row")).toHaveCount(13)
+    await page.getByRole("checkbox", { name: "Select TC-010" }).click()
+    await page.getByRole("group", { name: "Bulk actions" }).getByRole("button", { name: "Pass" }).click()
+    await expect(page.getByRole("row", { name: /TC-010/ })).toContainText("Passed")
+    // Straight away, before the save debounce could fire: a hard navigation, as a link typed in the address bar would be
+    await page.goto("/app/novabank/requirements")
+    await page.goto("/app/novabank/cases")
+    await expect(page.getByRole("row", { name: /TC-010/ })).toContainText("Passed")
+    await expect
+      .poll(async () => {
+        const doc = await (await page.request.get("/api/workspace")).json()
+        return doc.workspace.cases.find((c: { key: string }) => c.key === "TC-010").status
+      })
+      .toBe("passed")
+  })
+
+  test("unsent work left in the browser by an earlier visit is kept and sent, not overwritten", async ({ page }) => {
+    await signUp(page)
+    await page.goto("/app/novabank/cases")
+    await expect(page.getByRole("row")).toHaveCount(13)
+    // Let this page's own start-up sync finish first, or it would overwrite what we set up below
+    await expect(page.getByRole("status").filter({ hasText: "All changes saved" })).toBeVisible()
+
+    // Recreate a tab that closed before it could save: the browser holds a newer copy, marked unsent, while the
+    // server still has the older one
+    await page.evaluate(() => {
+      const workspace = JSON.parse(localStorage.getItem("assertly:workspace:v1")!)
+      workspace.cases.find((c: { key: string }) => c.key === "TC-010").status = "passed"
+      localStorage.setItem("assertly:workspace:v1", JSON.stringify(workspace))
+      const meta = JSON.parse(localStorage.getItem("assertly:sync:v1")!)
+      localStorage.setItem("assertly:sync:v1", JSON.stringify({ ...meta, dirty: true }))
+    })
+    const serverBefore = await (await page.request.get("/api/workspace")).json()
+    expect(serverBefore.workspace.cases.find((c: { key: string }) => c.key === "TC-010").status).toBe("notrun")
+
+    await page.reload()
+    await expect(page.getByRole("row", { name: /TC-010/ })).toContainText("Passed")
+    await expect
+      .poll(async () => {
+        const doc = await (await page.request.get("/api/workspace")).json()
+        return doc.workspace.cases.find((c: { key: string }) => c.key === "TC-010").status
+      })
+      .toBe("passed")
+  })
+
   test("signing out clears this browser's copy of the work", async ({ page }) => {
     await signUp(page)
     await passFirstCase(page, { signedIn: true })
@@ -174,7 +222,7 @@ test.describe("sharing a report", () => {
     await page.getByRole("button", { name: "Report a bug" }).first().click()
     const drawer = page.getByRole("dialog")
     await drawer.getByLabel("Title").fill("Negative amount is accepted on transfer")
-    await drawer.getByRole("textbox", { name: "Step 1" }).fill("Enter -50 as the amount")
+    await drawer.getByRole("textbox", { name: "Step 1", exact: true }).fill("Enter -50 as the amount")
     await drawer.getByLabel("Expected result").fill("The transfer is rejected with an error message")
     await drawer.getByLabel("Actual result").fill("The transfer is accepted and the balance goes up")
     await drawer.getByRole("button", { name: "Report bug" }).click()
@@ -239,6 +287,24 @@ test.describe("sharing a report", () => {
       await owner.close()
     })
   }
+
+  test("a shared report includes the plan and whether its exit criteria were met", async ({ page, browser }) => {
+    await signUp(page, "Katherine Johnson")
+    await page.goto("/app/novabank/plan")
+    await page.getByRole("button", { name: "Create from template" }).click()
+    await expect(page.getByLabel("Title")).toBeVisible()
+    await page.goto("/app/novabank/report")
+    await page.getByRole("button", { name: "Share" }).click()
+    await page.getByRole("button", { name: "Create link" }).click()
+    const path = (await page.getByRole("list", { name: "Active share links" }).getByRole("link").getAttribute("href"))!
+
+    const viewer = await freshPage(browser)
+    await viewer.page.goto(path)
+    await expect(viewer.page.getByRole("heading", { name: "Test plan and exit criteria" })).toBeVisible()
+    await expect(viewer.page.getByText(/Exit criteria not met: 3 of 5 satisfied\./)).toBeVisible()
+    await expect(viewer.page.getByText("NovaBank Transfers test plan")).toBeVisible()
+    await viewer.context.close()
+  })
 
   test("unknown or malformed share ids are a plain 404", async ({ page }) => {
     expect((await page.goto("/s/does-not-exist"))!.status()).toBe(404)

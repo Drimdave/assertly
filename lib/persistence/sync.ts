@@ -3,6 +3,7 @@
 import { useSyncExternalStore } from "react"
 
 import { canonical } from "./canonical"
+import { migrateWorkspace } from "@/lib/workspace/migrate"
 import { getSnapshot as getSandbox, subscribe as subscribeSandbox } from "@/lib/sandbox/novabank/store"
 import type { SandboxState } from "@/lib/sandbox/novabank/engine"
 import { getSnapshot as getWorkspace, subscribe as subscribeWorkspace } from "@/lib/workspace/store"
@@ -22,6 +23,36 @@ export type SyncState = "off" | "loading" | "saving" | "saved" | "error"
 
 const DEBOUNCE_MS = 800
 const GUEST_BACKUP_KEY = "assertly:guest-backup:v1"
+const META_KEY = "assertly:sync:v1"
+
+/**
+ * What this browser knows about its relationship to the server copy: which account, which revision it last saw, and
+ * whether it holds changes not yet sent. Without it a reload within the debounce window cannot tell "the server is
+ * ahead" from "I am ahead" and would overwrite unsent work with the older server copy.
+ */
+interface Meta {
+  userId: string
+  rev: number
+  dirty: boolean
+}
+function readMeta(): Meta | null {
+  try {
+    const raw = window.localStorage.getItem(META_KEY)
+    return raw ? (JSON.parse(raw) as Meta) : null
+  } catch {
+    return null
+  }
+}
+function writeMeta(meta: Meta | null) {
+  try {
+    if (meta) window.localStorage.setItem(META_KEY, JSON.stringify(meta))
+    else window.localStorage.removeItem(META_KEY)
+  } catch {
+    // storage blocked: fall back to the old behavior (the server copy wins)
+  }
+}
+/** Forget the account link, e.g. when signing out. */
+export const clearSyncMeta = () => writeMeta(null)
 
 let status: SyncState = "off"
 const statusListeners = new Set<() => void>()
@@ -49,6 +80,7 @@ interface RemoteDoc {
 }
 
 let rev = 0
+let currentUser: string | null = null
 let lastSynced = ""
 let timer: ReturnType<typeof setTimeout> | null = null
 let inflight: Promise<void> | null = null
@@ -70,10 +102,12 @@ async function api(method: "GET" | "PUT", body?: unknown, keepalive = false) {
 }
 
 function adopt(doc: RemoteDoc) {
-  if (doc.workspace) workspace.replaceState(doc.workspace)
+  // A copy saved by an older version lacks newer fields, so bring it up to date before the app reads it
+  if (doc.workspace) workspace.replaceState(migrateWorkspace(doc.workspace))
   if (doc.sandbox) sandbox.replaceState(doc.sandbox)
   rev = doc.rev
   lastSynced = serialize()
+  if (currentUser) writeMeta({ userId: currentUser, rev, dirty: false })
 }
 
 async function push(keepalive = false): Promise<void> {
@@ -92,6 +126,8 @@ async function push(keepalive = false): Promise<void> {
     if (res.status === 200) {
       rev = res.json.rev
       lastSynced = current
+      // Edits made while the request was in flight are still unsent
+      if (currentUser) writeMeta({ userId: currentUser, rev, dirty: serialize() !== current })
       setStatus("saved")
     } else if (res.status === 409) {
       const same = canonical({ w: res.json.workspace, s: res.json.sandbox }) === current
@@ -108,6 +144,7 @@ async function push(keepalive = false): Promise<void> {
 
 function schedule() {
   if (serialize() === lastSynced) return
+  if (currentUser) writeMeta({ userId: currentUser, rev, dirty: true })
   setStatus("saving")
   if (timer) clearTimeout(timer)
   timer = setTimeout(() => {
@@ -127,14 +164,23 @@ export async function flushSync(): Promise<void> {
 const onHide = () => {
   if (document.visibilityState === "hidden" && status !== "off") void push(true)
 }
+// pagehide fires on a plain navigation or reload, where visibilitychange may not
+const onPageHide = () => {
+  if (status !== "off") void push(true)
+}
 
 /** Begins syncing for a signed-in user: loads or claims the server copy, then keeps it saved. */
-export async function startSync(onNotice: (message: string) => void): Promise<void> {
+export async function startSync(userId: string, onNotice: (message: string) => void): Promise<void> {
   notify = onNotice
+  currentUser = userId
   const mine = ++generation
   setStatus("loading")
+  // Anything the user changes while the server copy is still loading is unsent work too
+  let touchedWhileLoading = false
+  const watch = [subscribeWorkspace(() => (touchedWhileLoading = true)), subscribeSandbox(() => (touchedWhileLoading = true))]
   try {
     const remote = await api("GET")
+    watch.forEach((off) => off())
     if (remote.status !== 200) throw new Error("load failed")
     if (remote.json.rev === 0) {
       // First sign-in: this device's work becomes the account's workspace
@@ -143,11 +189,18 @@ export async function startSync(onNotice: (message: string) => void): Promise<vo
       await push()
       if (status === "saved") notify("Your work is now saved to your account.")
     } else {
+      const meta = readMeta()
       if (canonical({ w: remote.json.workspace, s: remote.json.sandbox }) === serialize()) {
         // The usual case (a page reload): this browser already has the saved copy, so say nothing
         rev = remote.json.rev
         lastSynced = serialize()
+        writeMeta({ userId, rev, dirty: false })
         setStatus("saved")
+      } else if (meta && meta.userId === userId && (meta.dirty || touchedWhileLoading) && meta.rev === remote.json.rev) {
+        // This browser made changes the server has not seen, and nobody else has saved since: ours are newer
+        rev = remote.json.rev
+        lastSynced = ""
+        await push()
       } else {
         // The account has a workspace that differs from this browser's. Keep what the browser had, in case it
         // was real guest work, then take the account's copy.
@@ -162,15 +215,18 @@ export async function startSync(onNotice: (message: string) => void): Promise<vo
       }
     }
   } catch {
+    watch.forEach((off) => off())
     if (mine === generation) setStatus("error")
     return
   }
   if (mine !== generation) return
   const offs = [subscribeWorkspace(schedule), subscribeSandbox(schedule)]
   document.addEventListener("visibilitychange", onHide)
+  window.addEventListener("pagehide", onPageHide)
   unsubscribe = () => {
     offs.forEach((o) => o())
     document.removeEventListener("visibilitychange", onHide)
+    window.removeEventListener("pagehide", onPageHide)
   }
 }
 
@@ -182,5 +238,6 @@ export function stopSync() {
   timer = null
   rev = 0
   lastSynced = ""
+  currentUser = null
   setStatus("off")
 }

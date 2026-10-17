@@ -54,6 +54,7 @@ export default async function SharedReportPage({ params }: { params: Promise<Par
           report={snap.report}
           tester={snap.tester}
           defects={snap.defects}
+          plan={snap.plan ?? null}
           assessment={snap.assessment ? <SharedAssessment a={snap.assessment} /> : null}
         />
       </main>

@@ -1,6 +1,7 @@
+import { migrateWorkspace } from "./migrate"
 import { reduce, type Action } from "./reducer"
 import { createSeedState, EMPTY_STATE } from "./seed"
-import type { BugInput, BugReport, CaseInput, Status, TestCase, WorkspaceState } from "./types"
+import type { BugInput, BugReport, CaseInput, PlanInput, Status, TestCase, WorkspaceState } from "./types"
 
 /**
  * Browser-local workspace store for guests (Phase 1). It is the only module that touches storage, so
@@ -17,12 +18,6 @@ const listeners = new Set<() => void>()
 function isWorkspaceState(value: unknown): value is WorkspaceState {
   const v = value as WorkspaceState | null
   return !!v && v.v === 1 && Array.isArray(v.projects) && Array.isArray(v.cases) && Array.isArray(v.activity)
-}
-
-/** State saved before bug tracking existed has no bugs or hints; fill them in. */
-function migrate(v: WorkspaceState): WorkspaceState {
-  if (v.bugs && v.hints && v.nextBugNumber) return v
-  return { ...v, bugs: v.bugs ?? [], hints: v.hints ?? {}, nextBugNumber: v.nextBugNumber ?? {} }
 }
 
 function persist() {
@@ -45,7 +40,7 @@ function load() {
     if (raw) {
       const parsed: unknown = JSON.parse(raw)
       if (isWorkspaceState(parsed)) {
-        state = migrate(parsed)
+        state = migrateWorkspace(parsed)
         return
       }
     }
@@ -114,6 +109,7 @@ export const workspace = {
   updateBug: (id: string, patch: Partial<BugInput>) => dispatch({ type: "bug/update", at: now(), id, patch }),
   deleteBug: (id: string) => dispatch({ type: "bug/delete", id }),
   revealHint: (bugId: string) => dispatch({ type: "hint/reveal", bugId }),
+  savePlan: (projectSlug: string, input: PlanInput) => dispatch({ type: "plan/save", at: now(), projectSlug, input }),
 
   undo(): boolean {
     if (!previous) return false
