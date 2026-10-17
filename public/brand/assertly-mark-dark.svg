@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="Assertly">
+  <rect width="64" height="64" rx="15" fill="#6C97FF"/>
+  <g transform="translate(-2.25 0)">
+    <g fill="#0B1020" stroke="#0B1020" stroke-width="10" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M20,31 L31,42 L51,22" fill="none"/>
+      <circle cx="21" cy="26.5" r="8.5" stroke="none"/>
+    </g>
+    <g stroke="#6C97FF" stroke-width="2.4" fill="none"><path d="M11.3 16.8 L30.7 36.2"/><path d="M30.7 16.8 L11.3 36.2"/></g>
+  </g>
+</svg>

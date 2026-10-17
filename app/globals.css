@@ -1,0 +1,169 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * Assertly design tokens. Values come from docs/design/mockup-v4.html.
+ * Rules: neutral surfaces, blue only for primary actions/selection/links,
+ * status colors only for meaning, hairline borders, no resting shadows.
+ */
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 218 15% 12%;
+    --card: 0 0% 100%;
+    --card-foreground: 218 15% 12%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 218 15% 12%;
+
+    --primary: 223 70% 49%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 220 16% 96%;
+    --secondary-foreground: 218 15% 12%;
+    --muted: 220 16% 96%;
+    --muted-foreground: 217 10% 41%;
+    --accent: 216 15% 94%;
+    --accent-foreground: 218 15% 12%;
+    --destructive: 0 64% 47%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 218 13% 88%;
+    --input: 217 12% 79%;
+    --ring: 223 70% 49%;
+    --radius: 0.5rem;
+
+    --subtle: 210 14% 97%;
+    --primary-soft: 222 85% 95%;
+
+    --success: 145 60% 30%;
+    --success-soft: 147 45% 92%;
+    --warning: 36 100% 30%;
+    --warning-soft: 41 91% 91%;
+    --danger: 0 64% 47%;
+    --danger-soft: 0 72% 94%;
+    --neutral-soft: 220 16% 92%;
+
+    /* Elevation. Overlay surfaces use --popover. */
+    --surface-raised: 0 0% 100%;
+    --shadow-raised: 0 1px 2px hsl(218 15% 12% / 0.1), 0 0 1px hsl(218 15% 12% / 0.16);
+    --shadow-overlay: 0 8px 12px hsl(218 15% 12% / 0.14), 0 0 1px hsl(218 15% 12% / 0.3);
+  }
+
+  .dark {
+    --background: 220 18% 7%;
+    --foreground: 220 14% 91%;
+    --card: 220 18% 7%;
+    --card-foreground: 220 14% 91%;
+    --popover: 220 18% 13%;
+    --popover-foreground: 220 14% 91%;
+
+    --primary: 222 100% 71%;
+    --primary-foreground: 226 49% 8%;
+    --secondary: 220 18% 13%;
+    --secondary-foreground: 220 14% 91%;
+    --muted: 220 18% 13%;
+    --muted-foreground: 219 12% 67%;
+    --accent: 220 18% 13%;
+    --accent-foreground: 220 14% 91%;
+    --destructive: 0 100% 74%;
+    --destructive-foreground: 226 49% 8%;
+
+    --border: 219 16% 17%;
+    --input: 220 14% 25%;
+    --ring: 222 100% 71%;
+
+    --subtle: 220 18% 9%;
+    --primary-soft: 222 53% 19%;
+
+    --success: 149 49% 53%;
+    --success-soft: 146 45% 13%;
+    --warning: 38 86% 63%;
+    --warning-soft: 41 57% 13%;
+    --danger: 0 100% 74%;
+    --danger-soft: 356 38% 17%;
+    --neutral-soft: 219 17% 16%;
+
+    /* Dark mode: higher elevation = lighter surface, since shadows barely show. */
+    --surface-raised: 220 18% 11%;
+    --shadow-raised: 0 1px 2px rgb(0 0 0 / 0.5), 0 0 1px rgb(0 0 0 / 0.6);
+    --shadow-overlay: 0 8px 16px rgb(0 0 0 / 0.6), 0 0 1px rgb(0 0 0 / 0.8);
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background font-sans text-foreground antialiased;
+  }
+
+  :focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 1px;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+/* Paper is always light, even if the screen is in dark mode. */
+@media print {
+  @page {
+    margin: 14mm;
+  }
+  :root.dark {
+      --background: 0 0% 100%;
+      --foreground: 218 15% 12%;
+      --card: 0 0% 100%;
+      --card-foreground: 218 15% 12%;
+      --popover: 0 0% 100%;
+      --popover-foreground: 218 15% 12%;
+
+      --primary: 223 70% 49%;
+      --primary-foreground: 0 0% 100%;
+      --secondary: 220 16% 96%;
+      --secondary-foreground: 218 15% 12%;
+      --muted: 220 16% 96%;
+      --muted-foreground: 217 10% 41%;
+      --accent: 216 15% 94%;
+      --accent-foreground: 218 15% 12%;
+      --destructive: 0 64% 47%;
+      --destructive-foreground: 0 0% 100%;
+
+      --border: 218 13% 88%;
+      --input: 217 12% 79%;
+      --ring: 223 70% 49%;
+      --radius: 0.5rem;
+
+      --subtle: 210 14% 97%;
+      --primary-soft: 222 85% 95%;
+
+      --success: 145 60% 30%;
+      --success-soft: 147 45% 92%;
+      --warning: 36 100% 30%;
+      --warning-soft: 41 91% 91%;
+      --danger: 0 64% 47%;
+      --danger-soft: 0 72% 94%;
+      --neutral-soft: 220 16% 92%;
+      --surface-raised: 0 0% 100%;
+      --shadow-raised: 0 1px 2px hsl(218 15% 12% / 0.1), 0 0 1px hsl(218 15% 12% / 0.16);
+      --shadow-overlay: 0 8px 12px hsl(218 15% 12% / 0.14), 0 0 1px hsl(218 15% 12% / 0.3);
+  }
+  /* Without this, browsers drop every background on paper (bars, matrix squares, lozenges) unless the user
+     ticks "Background graphics" in the print dialog. */
+  *,
+  *::before,
+  *::after {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  body {
+    background: #fff;
+  }
+  [data-sonner-toaster] {
+    display: none !important;
+  }
+}

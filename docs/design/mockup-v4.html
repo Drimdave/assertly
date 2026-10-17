@@ -1,0 +1,452 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Assertly — Design Mockups v4</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#fff; --side:#f7f8f9; --subtle:#f4f5f7; --hover:#eceef1; --sel:#eef3ff; --border:#dcdfe4; --border-s:#c3c8d0;
+  --fg:#1a1d23; --mfg:#5d6572; --faint:#8a919d;
+  --blue:#2557d6; --blue-h:#1e48b3; --on-blue:#fff; --blue-t:#e6edfd;
+  --ok:#1f7a45; --ok-t:#e2f4ea; --bad:#c42b2b; --bad-t:#fbe6e6; --warn:#9a5b00; --warn-t:#fdf0d5; --neu-t:#e9ebef;
+  --sans:"IBM Plex Sans",ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+:root[data-theme=dark]{
+  --bg:#0e1014; --side:#12151a; --subtle:#14171d; --hover:#1b1f27; --sel:#16213b; --border:#262b34; --border-s:#363c48;
+  --fg:#e6e8ec; --mfg:#a0a7b4; --faint:#6f7785;
+  --blue:#6c97ff; --blue-h:#8aaeff; --on-blue:#0b1020; --blue-t:#17274b;
+  --ok:#4cc27f; --ok-t:#12301f; --bad:#ff7b7b; --bad-t:#3a1a1c; --warn:#f2b44d; --warn-t:#33270e; --neu-t:#222730;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:var(--sans);background:var(--bg);color:var(--fg);font-size:13px;line-height:20px;-webkit-font-smoothing:antialiased;overflow:hidden}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer;background:none;border:0}
+:focus-visible{outline:2px solid var(--blue);outline-offset:1px;border-radius:4px}
+svg{width:16px;height:16px;flex:none;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.shell{display:grid;grid-template-columns:232px 1fr;height:100vh}
+/* sidebar */
+.side{background:var(--side);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:auto;padding:12px 8px}
+.proj{display:flex;align-items:center;gap:10px;padding:6px 8px 14px}
+.pk{width:28px;height:28px;border-radius:4px;background:var(--blue);color:var(--on-blue);display:grid;place-items:center;font-weight:600;font-size:11px;letter-spacing:.02em}
+.proj b{font-weight:600;display:block;line-height:16px} .proj small{color:var(--mfg);font-size:11px;line-height:14px}
+.grp{font-size:11px;font-weight:600;color:var(--faint);padding:14px 8px 4px;text-transform:uppercase;letter-spacing:.05em}
+.nv{height:30px;border-radius:4px;display:flex;align-items:center;gap:10px;padding:0 8px;color:var(--mfg);width:100%;text-align:left;position:relative}
+.nv:hover{background:var(--hover);color:var(--fg)}
+.nv.on{background:var(--blue-t);color:var(--blue);font-weight:500}
+.nv.on:before{content:"";position:absolute;left:-8px;top:5px;bottom:5px;width:3px;border-radius:0 3px 3px 0;background:var(--blue)}
+.nv .ct{margin-left:auto;font-size:11px;color:var(--mfg);font-variant-numeric:tabular-nums}
+.foot{margin-top:auto;padding:12px 4px 0;border-top:1px solid var(--border);display:flex;align-items:center;gap:8px}
+.foot .who{flex:1;min-width:0;line-height:16px} .foot small{color:var(--mfg);font-size:11px}
+.ib{width:28px;height:28px;border-radius:4px;display:grid;place-items:center;color:var(--mfg)} .ib:hover{background:var(--hover);color:var(--fg)}
+/* header */
+.main{display:flex;flex-direction:column;min-width:0;height:100vh}
+.top{height:48px;flex:none;display:flex;align-items:center;gap:12px;padding:0 20px;border-bottom:1px solid var(--border)}
+.crumb{color:var(--mfg)} .crumb b{color:var(--fg);font-weight:500}
+.sp{flex:1}
+.gs{display:flex;align-items:center;gap:8px;height:28px;border:1px solid var(--border-s);border-radius:4px;padding:0 8px;color:var(--mfg);width:260px;background:var(--bg)}
+.gs:focus-within{border-color:var(--blue);box-shadow:0 0 0 1px var(--blue)}
+.gs input{flex:1;border:0;outline:0;background:none;min-width:0}
+.kbd{border:1px solid var(--border-s);border-radius:3px;padding:0 5px;font-family:var(--mono);font-size:11px;line-height:16px;color:var(--mfg);background:var(--subtle)}
+.btn{height:28px;border-radius:4px;padding:0 10px;display:inline-flex;align-items:center;gap:6px;font-weight:500;border:1px solid var(--border-s);background:var(--bg);white-space:nowrap}
+.btn:hover{background:var(--hover)}
+.btn.pri{background:var(--blue);border-color:var(--blue);color:var(--on-blue)} .btn.pri:hover{background:var(--blue-h)}
+.btn.ghost{border-color:transparent;background:none} .btn.ghost:hover{background:var(--hover)}
+select.btn{padding-right:6px}
+.page{display:none;flex:1;overflow:auto;padding:20px 24px 56px}
+.page.show{display:block}
+h1{font-size:20px;line-height:28px;font-weight:600;letter-spacing:-.01em}
+h2{font-size:14px;line-height:20px;font-weight:600}
+.sub{color:var(--mfg)}
+.row{display:flex;align-items:center;gap:8px}
+.bar-top{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.panel{border:1px solid var(--border);border-radius:8px;background:var(--bg);overflow-x:auto}
+.panel>.hd{display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid var(--border)}
+.panel>.hd .sub{margin-left:auto;font-size:12px}
+/* lozenge, priority, avatar */
+.loz{display:inline-block;font-size:11px;line-height:16px;font-weight:600;text-transform:uppercase;letter-spacing:.03em;padding:0 6px;border-radius:3px;white-space:nowrap}
+.l-notrun{background:var(--neu-t);color:var(--mfg)} .l-prog{background:var(--blue-t);color:var(--blue)} .l-pass{background:var(--ok-t);color:var(--ok)}
+.l-fail{background:var(--bad-t);color:var(--bad)} .l-block{background:var(--warn-t);color:var(--warn)}
+.pri{display:inline-flex}
+.pr{display:inline-flex;align-items:center;gap:5px;color:var(--mfg)} .pr svg{width:14px;height:14px}
+.pr.high svg{color:var(--bad)} .pr.med svg{color:var(--warn)} .pr.low svg{color:var(--blue)}
+.av{width:20px;height:20px;border-radius:50%;display:inline-grid;place-items:center;font-size:9px;font-weight:600;background:var(--neu-t);color:var(--mfg);flex:none}
+.av.a{background:var(--blue-t);color:var(--blue)} .av.b{background:var(--ok-t);color:var(--ok)} .av.c{background:var(--warn-t);color:var(--warn)}
+.key{font-family:var(--mono);font-size:12px;color:var(--mfg)}
+.tag{display:inline-block;background:var(--neu-t);color:var(--mfg);border-radius:3px;padding:0 6px;font-size:12px}
+.bugchip{font-family:var(--mono);font-size:11px;color:var(--bad);background:var(--bad-t);border-radius:3px;padding:0 5px}
+/* tables */
+table{width:100%;border-collapse:collapse}
+th{font-size:12px;font-weight:600;color:var(--mfg);text-align:left;padding:0 10px;height:32px;border-bottom:1px solid var(--border);white-space:nowrap;background:var(--bg);position:sticky;top:0}
+td{padding:0 10px;height:36px;border-bottom:1px solid var(--border);white-space:nowrap}
+td.wrap{white-space:normal}
+tbody tr{position:relative}
+tbody tr:hover{background:var(--subtle)}
+tbody tr.sel{background:var(--sel)}
+tbody tr.cur{box-shadow:inset 2px 0 0 var(--blue)}
+td.sm,th.sm{width:32px;padding-right:0}
+.summ{max-width:360px;overflow:hidden;text-overflow:ellipsis}
+.qa{display:none;gap:2px;position:absolute;right:8px;top:4px;background:var(--bg);border:1px solid var(--border-s);border-radius:5px;padding:2px}
+tbody tr:hover .qa,tbody tr.cur .qa{display:flex}
+.qa button{width:26px;height:26px;border-radius:3px;display:grid;place-items:center;color:var(--mfg)} .qa button:hover{background:var(--hover);color:var(--fg)}
+.qa .p:hover{color:var(--ok)} .qa .f:hover{color:var(--bad)}
+input[type=checkbox]{width:14px;height:14px;accent-color:var(--blue);vertical-align:middle}
+.empty{padding:48px 0;text-align:center;color:var(--mfg)}
+.tools{display:flex;align-items:center;gap:8px;margin-bottom:12px;min-height:28px}
+.bulk{display:none;align-items:center;gap:8px;background:var(--sel);border:1px solid var(--blue-t);border-radius:6px;padding:0 8px;height:28px}
+.bulk.on{display:flex}
+.keys{display:flex;gap:16px;color:var(--mfg);font-size:12px;margin-top:12px;flex-wrap:wrap}
+.keys span{display:inline-flex;gap:6px;align-items:center}
+/* stacked bar */
+.stack{display:flex;height:8px;border-radius:2px;overflow:hidden;background:var(--neu-t);gap:1px}
+.stack i{display:block;height:100%} .s-pass{background:var(--ok)} .s-fail{background:var(--bad)} .s-prog{background:var(--blue)} .s-block{background:var(--warn)}
+/* home */
+.grid2{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:16px;margin-top:16px}
+.run{padding:12px 14px;border-bottom:1px solid var(--border)} .run:last-child{border-bottom:0}
+.run .t{display:flex;align-items:center;gap:8px;margin-bottom:8px} .run .t b{font-weight:500}
+.run .m{display:flex;gap:12px;color:var(--mfg);font-size:12px;margin-top:6px}
+.lg{display:inline-flex;align-items:center;gap:5px} .lg i{width:8px;height:8px;border-radius:2px}
+.feed{padding:4px 14px} .feed div{padding:9px 0;border-bottom:1px solid var(--border);color:var(--mfg)} .feed div:last-child{border:0} .feed b{color:var(--fg);font-weight:500}
+.feed small{display:block;color:var(--faint);font-size:12px}
+/* board */
+.board{display:grid;grid-template-columns:repeat(5,minmax(232px,1fr));gap:10px;align-items:start;overflow-x:auto;padding-bottom:12px}
+.lane{background:var(--subtle);border:1px solid transparent;border-radius:8px;padding:6px;min-height:240px}
+.lane.over{border-color:var(--blue);background:var(--blue-t)}
+.lh{display:flex;align-items:center;gap:8px;padding:4px 6px 8px;font-size:11px;font-weight:600;color:var(--mfg);text-transform:uppercase;letter-spacing:.04em}
+.lh .c{font-weight:500;color:var(--faint)}
+.tc{background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:8px 10px;margin-bottom:6px;cursor:grab;user-select:none}
+.tc:hover{border-color:var(--border-s)} .tc:active{cursor:grabbing}
+.tc.dragging{opacity:.35}
+.tc h4{font-weight:400;margin:2px 0 8px;line-height:18px}
+.tc .ft{display:flex;align-items:center;gap:8px}
+.tc .ft .sp{flex:1}
+.drop{height:2px;border-radius:2px;background:var(--blue);margin:0 2px 6px}
+/* drawer */
+.scrim{position:fixed;inset:0;background:rgba(10,14,22,.32);opacity:0;pointer-events:none;transition:opacity .15s;z-index:30}
+.scrim.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:min(560px,100vw);z-index:31;background:var(--bg);border-left:1px solid var(--border);box-shadow:-12px 0 32px rgba(10,14,22,.14);transform:translateX(102%);transition:transform .2s cubic-bezier(.2,.8,.2,1);overflow:auto}
+.drawer.on{transform:none}
+.dh{display:flex;align-items:center;gap:6px;padding:8px 14px;position:sticky;top:0;background:var(--bg);z-index:2;border-bottom:1px solid var(--border)}
+.db{padding:16px 20px 32px}
+.db h2{font-size:18px;line-height:26px;margin:4px 0 14px}
+.props{display:grid;grid-template-columns:104px 1fr;gap:8px 8px;align-items:center;margin-bottom:18px}
+.props>span:nth-child(odd){color:var(--mfg)}
+.seg{display:inline-flex;border:1px solid var(--border-s);border-radius:4px;overflow:hidden;flex-wrap:wrap}
+.seg button{height:26px;padding:0 9px;font-weight:500;color:var(--mfg);border-right:1px solid var(--border-s)} .seg button:last-child{border:0}
+.seg button:hover{background:var(--hover)} .seg button.on{background:var(--blue);color:var(--on-blue)}
+.sec{border:1px solid var(--border);border-radius:6px;margin-bottom:14px}
+.sec>h3{font-size:12px;font-weight:600;color:var(--mfg);padding:8px 12px;border-bottom:1px solid var(--border);background:var(--subtle);border-radius:6px 6px 0 0}
+.sec .in{padding:10px 12px}
+.sec table td,.sec table th{height:auto;padding:7px 10px;white-space:normal}
+.sec table th{position:static;height:28px}
+.bad{color:var(--bad)} .ok{color:var(--ok)}
+.tl{display:flex;gap:10px;padding:8px 0;color:var(--mfg)} .tl b{color:var(--fg);font-weight:500}
+.tl small{display:block;color:var(--faint)}
+.quote{border-left:2px solid var(--border-s);padding:2px 10px;margin-top:4px;color:var(--fg)}
+/* toast */
+.toast{position:fixed;left:50%;bottom:20px;transform:translate(-50%,16px);opacity:0;pointer-events:none;background:var(--fg);color:var(--bg);border-radius:6px;padding:7px 8px 7px 14px;display:flex;align-items:center;gap:12px;box-shadow:0 8px 24px rgba(0,0,0,.25);transition:.18s;z-index:50}
+.toast.on{opacity:1;transform:translate(-50%,0);pointer-events:auto}
+.toast button{border-radius:4px;padding:0 8px;font-weight:600;color:var(--bg);text-decoration:underline}
+/* report */
+.doc{max-width:900px}
+.doc .meta{display:grid;grid-template-columns:repeat(4,auto);gap:4px 28px;justify-content:start;margin:10px 0 4px;color:var(--mfg)}
+.doc .meta b{display:block;color:var(--fg);font-weight:500}
+.sect{margin-top:28px} .sect h2{font-size:15px;margin-bottom:10px;display:flex;gap:8px;align-items:baseline} .sect h2 span{color:var(--faint);font-family:var(--mono);font-size:12px;font-weight:400}
+.verdict{border:1px solid var(--border);border-left:3px solid var(--bad);border-radius:6px;padding:12px 14px;background:var(--subtle)}
+.kv{display:grid;grid-template-columns:150px 1fr;gap:6px 12px} .kv>span:nth-child(odd){color:var(--mfg)}
+.mx td,.mx th{height:34px}
+.cell{display:inline-block;width:20px;height:20px;border-radius:3px;margin-right:4px;vertical-align:middle;border:1px solid transparent;position:relative}
+.cell.pass{background:var(--ok)} .cell.fail{background:var(--bad)} .cell.prog{background:var(--blue)} .cell.block{background:var(--warn)} .cell.notrun{background:var(--bg);border-color:var(--border-s)}
+.legend{display:flex;gap:14px;color:var(--mfg);font-size:12px;margin-top:8px}
+.legend .cell{width:12px;height:12px;margin-right:5px}
+.hint-btn{color:var(--blue);font-weight:500} .hint-btn:hover{text-decoration:underline}
+@media(max-width:1000px){.shell{grid-template-columns:1fr}.side{display:none}.grid2{grid-template-columns:1fr}.gs{display:none}.page{padding:16px 12px 56px}.doc .meta{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<div class="shell">
+  <aside class="side">
+    <div class="proj"><div class="pk">NBT</div><div><b>NovaBank Transfers</b><small>Practice project · Medium</small></div></div>
+    <button class="nv on" data-go="home"><span data-i="home"></span>For you</button>
+    <div class="grp">Testing</div>
+    <button class="nv" data-go="cases"><span data-i="list"></span>Test cases<span class="ct" id="ct-all">12</span></button>
+    <button class="nv" data-go="board"><span data-i="board"></span>Board</button>
+    <button class="nv" data-go="bugs"><span data-i="bug"></span>Bugs<span class="ct">3</span></button>
+    <div class="grp">Reporting</div>
+    <button class="nv" data-go="report"><span data-i="report"></span>Test summary</button>
+    <div class="grp">Projects</div>
+    <button class="nv"><span data-i="dot"></span>PayLane Checkout</button>
+    <button class="nv"><span data-i="dot"></span>CareLink Claims</button>
+    <button class="nv"><span data-i="dot"></span>Fundamentals</button>
+    <div class="foot"><span class="av a">AR</span><div class="who"><b style="font-weight:500">Alex Rivera</b><br><small>QA analyst</small></div>
+      <button class="ib" id="themeBtn" title="Toggle theme" aria-label="Toggle theme"></button></div>
+  </aside>
+
+  <div class="main">
+    <header class="top">
+      <span class="crumb">Projects / NovaBank Transfers / <b id="crumb">For you</b></span><div class="sp"></div>
+      <label class="gs"><span data-i="search"></span><input id="q" placeholder="Search test cases" aria-label="Search test cases"><span class="kbd">/</span></label>
+      <button class="btn pri"><span data-i="plus"></span>Create</button>
+    </header>
+
+    <!-- HOME -->
+    <section class="page show" id="home">
+      <h1>For you</h1><div class="sub">Work assigned to you across NovaBank Transfers and 2 other projects.</div>
+      <div class="grid2">
+        <div class="panel"><div class="hd"><h2>Assigned to me</h2><span class="sub" id="mineCount"></span></div><div id="mine"></div></div>
+        <div class="panel"><div class="hd"><h2>Runs in progress</h2></div><div id="runs"></div></div>
+      </div>
+      <div class="grid2">
+        <div class="panel"><div class="hd"><h2>Recent bug reports</h2><span class="sub">last 7 days</span></div>
+          <table><thead><tr><th>Key</th><th>Summary</th><th>Severity</th><th>Status</th></tr></thead><tbody>
+          <tr><td class="key">BUG-009</td><td class="summ">Balance not updated after transfer</td><td>High</td><td><span class="loz l-fail">Open</span></td></tr>
+          <tr><td class="key">BUG-007</td><td class="summ">Transfer accepts a negative amount</td><td>Critical</td><td><span class="loz l-fail">Open</span></td></tr>
+          <tr><td class="key">BUG-004</td><td class="summ">Login page shows stack trace on 500</td><td>Medium</td><td><span class="loz l-pass">Verified</span></td></tr></tbody></table></div>
+        <div class="panel"><div class="hd"><h2>Activity</h2></div><div class="feed" id="feed"></div></div>
+      </div>
+    </section>
+
+    <!-- CASES -->
+    <section class="page" id="cases">
+      <div class="bar-top"><h1>Test cases</h1><span class="sub" id="caseSub"></span><div class="sp"></div><button class="btn"><span data-i="plus"></span>Add test case</button></div>
+      <div class="tools">
+        <select class="btn" id="fStatus" aria-label="Status filter"><option value="">Status: All</option></select>
+        <div class="bulk" id="bulk"><b id="bulkN"></b><button class="btn" data-bulk="pass">Pass</button><button class="btn" data-bulk="fail">Fail</button><button class="btn" data-bulk="block">Block</button><button class="btn ghost" data-bulk="clear">Clear</button></div>
+        <div class="sp"></div><span class="sub" id="showing"></span>
+      </div>
+      <div class="panel"><table><thead><tr><th class="sm"><input type="checkbox" id="all" aria-label="Select all"></th><th>Key</th><th>Summary</th><th>Status</th><th>Priority</th><th>Requirement</th><th>Assignee</th><th>Updated</th></tr></thead><tbody id="rows"></tbody></table></div>
+      <div class="keys"><span><span class="kbd">J</span><span class="kbd">K</span> move</span><span><span class="kbd">Enter</span> open</span><span><span class="kbd">P</span> pass</span><span><span class="kbd">F</span> fail</span><span><span class="kbd">B</span> block</span><span><span class="kbd">X</span> select</span><span><span class="kbd">/</span> search</span><span><span class="kbd">Esc</span> close</span></div>
+    </section>
+
+    <!-- BOARD -->
+    <section class="page" id="board">
+      <div class="bar-top"><h1>Board</h1><span class="sub">Run #3 · drag cards between columns</span><div class="sp"></div><button class="btn"><span data-i="plus"></span>Add test case</button></div>
+      <div class="board" id="boardEl"></div>
+    </section>
+
+    <!-- BUGS -->
+    <section class="page" id="bugs">
+      <div class="bar-top"><h1>Bugs</h1><span class="sub">3 open in this run</span><div class="sp"></div><button class="btn pri"><span data-i="plus"></span>Report bug</button></div>
+      <div class="panel"><table><thead><tr><th>Key</th><th>Summary</th><th>Severity</th><th>Linked test</th><th>Status</th><th>Seeded defect</th></tr></thead><tbody>
+        <tr><td class="key">BUG-007</td><td>Transfer accepts a negative amount</td><td>Critical</td><td class="key">TC-009</td><td><span class="loz l-fail">Open</span></td><td><span class="loz l-pass">Matched</span></td></tr>
+        <tr><td class="key">BUG-009</td><td>Balance not updated after transfer</td><td>High</td><td class="key">TC-011</td><td><span class="loz l-fail">Open</span></td><td><span class="loz l-pass">Matched</span></td></tr>
+        <tr><td class="key">BUG-010</td><td>Error text is truncated at narrow widths</td><td>Low</td><td class="key">—</td><td><span class="loz l-fail">Open</span></td><td><span class="loz l-notrun">Not seeded</span></td></tr></tbody></table></div>
+    </section>
+
+    <!-- REPORT -->
+    <section class="page" id="report"><div class="doc">
+      <div class="row"><h1>Test summary report</h1><div class="sp"></div><button class="btn">Export PDF</button><button class="btn pri">Share link</button></div>
+      <div class="sub">NovaBank Transfers · Execution run #3 · generated from live results</div>
+      <div class="meta"><div>Tester<b>Alex Rivera</b></div><div>Build<b>2.4.1-rc2</b></div><div>Environment<b>Staging · Chrome 126</b></div><div>Window<b>Oct 8 – Oct 11</b></div></div>
+
+      <div class="sect"><h2><span>1</span>Summary</h2>
+        <div class="verdict" id="verdict"></div></div>
+
+      <div class="sect"><h2><span>2</span>Execution results</h2><div class="panel"><div id="exec"></div></div></div>
+
+      <div class="sect"><h2><span>3</span>Requirement coverage</h2><div class="panel"><table class="mx"><thead><tr><th>Requirement</th><th>Test cases (hover for detail)</th><th>Executed</th></tr></thead><tbody id="matrix"></tbody></table></div>
+        <div class="legend"><span><i class="cell pass"></i>Passed</span><span><i class="cell fail"></i>Failed</span><span><i class="cell prog"></i>In progress</span><span><i class="cell block"></i>Blocked</span><span><i class="cell notrun"></i>Not run</span></div></div>
+
+      <div class="sect"><h2><span>4</span>Defects and seeded-bug assessment</h2><div class="panel"><table><thead><tr><th>Seeded defect</th><th>Severity</th><th>Result</th><th>Your report</th></tr></thead><tbody>
+        <tr><td>Negative amount accepted</td><td>Critical</td><td><span class="loz l-pass">Found</span></td><td>BUG-007 · quality 9/10</td></tr>
+        <tr><td>Balance not updated after transfer</td><td>High</td><td><span class="loz l-pass">Found</span></td><td>BUG-009 · 6/10, missing repro steps</td></tr>
+        <tr><td>Daily limit bypass</td><td>High</td><td><span class="loz l-fail">Missed</span></td><td><button class="hint-btn" data-hint="Concurrent sessions share one limit counter.">Reveal hint</button></td></tr>
+        <tr><td>Rounding error on cents</td><td>Medium</td><td><span class="loz l-fail">Missed</span></td><td><button class="hint-btn" data-hint="Try amounts with three decimal places.">Reveal hint</button></td></tr>
+        <tr><td>Session not invalidated after logout</td><td>High</td><td><span class="loz l-fail">Missed</span></td><td><button class="hint-btn" data-hint="Use the browser back button after signing out.">Reveal hint</button></td></tr></tbody></table></div></div>
+
+      <div class="sect"><h2><span>5</span>Risks and recommendation</h2>
+        <div class="kv"><span>Release</span><span><b style="font-weight:500">Not recommended.</b> Two open high-severity defects in the core transfer flow.</span>
+        <span>Untested areas</span><span>Transfer limits (REQ-03) and SMS alerts (REQ-04) have little or no coverage.</span>
+        <span>Next step</span><span>Run TC-021 and TC-022, then retest BUG-007 and BUG-009 once fixed.</span></div></div>
+    </div></section>
+  </div>
+</div>
+
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer" aria-hidden="true">
+  <div class="dh"><button class="ib" id="dclose" aria-label="Close"><span data-i="x"></span></button><span class="key" id="dkey"></span><div class="sp"></div><button class="ib" aria-label="More"><span data-i="more"></span></button></div>
+  <div class="db" id="dbody"></div>
+</aside>
+<div class="toast" id="toast"><span id="toastmsg"></span><button id="undo">Undo</button></div>
+
+<script>
+const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const P={plus:'<path d="M12 5v14M5 12h14"/>',home:'<path d="M4 11l8-7 8 7M6 10v10h12V10"/>',list:'<path d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01"/>',
+board:'<rect x="3" y="4" width="5" height="16" rx="1"/><rect x="10" y="4" width="5" height="10" rx="1"/><rect x="17" y="4" width="4" height="13" rx="1"/>',
+bug:'<rect x="8" y="7" width="8" height="12" rx="4"/><path d="M12 7V4M5 11h3M16 11h3M5 17h3M16 17h3"/>',report:'<path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 13h7M9 17h5"/>',
+dot:'<circle cx="12" cy="12" r="3"/>',search:'<circle cx="11" cy="11" r="6"/><path d="M20 20l-4.5-4.5"/>',x:'<path d="M6 6l12 12M18 6L6 18"/>',more:'<circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/>',
+sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',moon:'<path d="M21 13A9 9 0 1111 3a7 7 0 0010 10z"/>',
+chkx:'<path d="M5 12l5 5 9-10"/>',xx:'<path d="M6 6l12 12M18 6L6 18"/>',ban:'<circle cx="12" cy="12" r="8"/><path d="M6.5 6.5l11 11"/>',
+hi:'<path d="M6 15l6-6 6 6M6 20l6-6 6 6" />',med:'<path d="M5 9h14M5 15h14"/>',lo:'<path d="M6 9l6 6 6-6"/>'};
+const icon=n=>`<svg viewBox="0 0 24 24" aria-hidden="true">${P[n]||''}</svg>`;
+const paintIcons=()=>$$('[data-i]').forEach(e=>e.innerHTML=icon(e.dataset.i));
+paintIcons();
+
+const STATUS=[{k:'notrun',n:'Not run'},{k:'prog',n:'In progress'},{k:'pass',n:'Passed'},{k:'fail',n:'Failed'},{k:'block',n:'Blocked'}];
+const sOf=k=>STATUS.find(s=>s.k===k);
+const PEOPLE={AR:['Alex Rivera','a'],PN:['Priya Nair','b'],TW:['Tomasz Weber','c'],LM:['Lucia Mendes','']};
+const REQS={'REQ-01':'Login','REQ-02':'Funds transfer','REQ-03':'Transfer limits','REQ-04':'Alerts','REQ-05':'Input validation'};
+let cards=[
+ {id:'TC-001',t:'Valid login opens the accounts page',req:'REQ-01',pr:'low',who:'AR',s:'pass',up:'3d ago',steps:3,cm:0},
+ {id:'TC-002',t:'Locked account shows the lockout message',req:'REQ-01',pr:'med',who:'TW',s:'pass',up:'3d ago',steps:4,cm:0},
+ {id:'TC-004',t:'Transfer between own accounts',req:'REQ-02',pr:'high',who:'AR',s:'pass',up:'2d ago',steps:5,cm:1},
+ {id:'TC-007',t:'Transfer to an unknown IBAN is rejected',req:'REQ-02',pr:'high',who:'PN',s:'pass',up:'2d ago',steps:4,cm:0},
+ {id:'TC-009',t:'Negative amount is rejected',req:'REQ-02',pr:'high',who:'AR',s:'fail',up:'18m ago',steps:3,cm:1,bug:'BUG-007'},
+ {id:'TC-011',t:'Balance updates after a transfer',req:'REQ-02',pr:'high',who:'PN',s:'fail',up:'1h ago',steps:4,cm:0,bug:'BUG-009'},
+ {id:'TC-014',t:'Transfer with insufficient balance',req:'REQ-02',pr:'high',who:'AR',s:'prog',up:'2m ago',steps:5,cm:2},
+ {id:'TC-016',t:'Session times out during a transfer',req:'REQ-02',pr:'med',who:'TW',s:'prog',up:'4h ago',steps:7,cm:1},
+ {id:'TC-018',t:'SMS confirmation is received',req:'REQ-04',pr:'med',who:'LM',s:'block',up:'1d ago',steps:3,cm:0},
+ {id:'TC-021',t:'Transfer exceeding the daily limit',req:'REQ-03',pr:'high',who:'AR',s:'notrun',up:'5d ago',steps:6,cm:0},
+ {id:'TC-022',t:'Transfer to own account number',req:'REQ-03',pr:'med',who:'PN',s:'notrun',up:'5d ago',steps:4,cm:0},
+ {id:'TC-023',t:'Amount field rejects letters',req:'REQ-05',pr:'low',who:'TW',s:'notrun',up:'5d ago',steps:3,cm:0}];
+const PRN={high:'High',med:'Medium',low:'Low'}, PRI={high:'hi',med:'med',low:'lo'};
+const loz=s=>`<span class="loz l-${s}">${sOf(s).n}</span>`;
+const prio=p=>`<span class="pr ${p}">${icon(PRI[p])}${PRN[p]}</span>`;
+const avt=w=>`<span class="av ${PEOPLE[w][1]}" title="${PEOPLE[w][0]}">${w}</span>`;
+const count=k=>cards.filter(c=>c.s===k).length;
+
+/* state */
+let q='', fStatus='', sel=new Set(), cur=-1, snapshot=null;
+const vis=()=>cards.filter(c=>(!fStatus||c.s===fStatus)&&(!q||(c.id+' '+c.t+' '+c.req).toLowerCase().includes(q.toLowerCase())));
+
+/* cases table */
+function renderRows(){
+ const v=vis(); if(cur>=v.length) cur=v.length-1;
+ $('#rows').innerHTML=v.length?v.map((c,i)=>`<tr data-id="${c.id}" class="${sel.has(c.id)?'sel':''} ${i===cur?'cur':''}">
+  <td class="sm"><input type="checkbox" ${sel.has(c.id)?'checked':''} aria-label="Select ${c.id}"></td><td class="key">${c.id}</td>
+  <td class="summ">${c.t}${c.bug?` <span class="bugchip">${c.bug}</span>`:''}</td><td>${loz(c.s)}</td><td>${prio(c.pr)}</td>
+  <td><span class="tag">${c.req}</span> <span class="sub">${REQS[c.req]}</span></td><td><span class="row" style="gap:6px">${avt(c.who)}${PEOPLE[c.who][0].split(' ')[0]}</span></td><td class="sub">${c.up}
+  <div class="qa"><button class="p" data-q="pass" title="Pass (P)" aria-label="Pass">${icon('chkx')}</button><button class="f" data-q="fail" title="Fail (F)" aria-label="Fail">${icon('xx')}</button><button data-q="block" title="Block (B)" aria-label="Block">${icon('ban')}</button></div></td></tr>`).join('')
+  :`<tr><td colspan="8" class="empty">No test cases match your filters. <button class="hint-btn" id="clr">Clear filters</button></td></tr>`;
+ $('#showing').textContent=`${v.length} of ${cards.length}`;
+ $('#all').checked=v.length>0&&v.every(c=>sel.has(c.id));
+ const n=sel.size; $('#bulk').classList.toggle('on',n>0); $('#bulkN').textContent=n+' selected';
+ $('#caseSub').textContent=`${count('pass')+count('fail')} of ${cards.length} executed`;
+ $('#ct-all').textContent=cards.length;
+}
+$('#fStatus').innerHTML+=STATUS.map(s=>`<option value="${s.k}">${s.n}</option>`).join('');
+$('#fStatus').addEventListener('change',e=>{fStatus=e.target.value;renderAll()});
+$('#q').addEventListener('input',e=>{q=e.target.value;renderAll()});
+$('#rows').addEventListener('click',e=>{
+ if(e.target.id==='clr'){q='';fStatus='';$('#q').value='';$('#fStatus').value='';renderAll();return;}
+ const tr=e.target.closest('tr[data-id]'); if(!tr) return; const id=tr.dataset.id;
+ const qb=e.target.closest('[data-q]'); if(qb){setStatus([id],qb.dataset.q);return;}
+ if(e.target.type==='checkbox'){e.target.checked?sel.add(id):sel.delete(id);renderRows();return;}
+ openDrawer(id);
+});
+$('#all').addEventListener('change',e=>{vis().forEach(c=>e.target.checked?sel.add(c.id):sel.delete(c.id));renderRows();});
+$('#bulk').addEventListener('click',e=>{const b=e.target.closest('[data-bulk]'); if(!b) return;
+ if(b.dataset.bulk==='clear'){sel.clear();renderRows();return;} setStatus([...sel],b.dataset.bulk); sel.clear(); renderRows();});
+
+function setStatus(ids,s){
+ snapshot=JSON.stringify(cards);
+ ids.forEach(id=>{const c=cards.find(x=>x.id===id); if(c){c.s=s;c.up='just now';}});
+ renderAll(); if(openId) $('#dbody').innerHTML=drawerHTML(cards.find(x=>x.id===openId));
+ toast(ids.length===1?`${ids[0]} set to ${sOf(s).n}`:`${ids.length} test cases set to ${sOf(s).n}`);
+}
+
+/* board */
+const boardEl=$('#boardEl');
+const cardHTML=c=>`<div class="tc" draggable="true" data-id="${c.id}"><div class="row" style="margin-bottom:2px"><span class="key">${c.id}</span><span class="sp"></span>${c.bug?`<span class="bugchip">${c.bug}</span>`:''}</div><h4>${c.t}</h4><div class="ft">${prio(c.pr)}<span class="sp"></span><span class="tag">${c.req}</span>${avt(c.who)}</div></div>`;
+function renderBoard(){
+ const v=vis();
+ boardEl.innerHTML=STATUS.map(s=>{const l=v.filter(c=>c.s===s.k);
+  return `<div class="lane" data-s="${s.k}"><div class="lh">${s.n}<span class="c">${l.length}</span></div><div class="stk">${l.map(cardHTML).join('')}</div></div>`;}).join('');
+}
+let dragId=null; const drop=document.createElement('div'); drop.className='drop';
+const after=(stk,y)=>[...stk.querySelectorAll('.tc:not(.dragging)')].reduce((b,el)=>{const r=el.getBoundingClientRect(),o=y-r.top-r.height/2;return o<0&&o>b.o?{o,el}:b;},{o:-Infinity,el:null}).el;
+boardEl.addEventListener('dragstart',e=>{const t=e.target.closest('.tc'); if(!t) return; dragId=t.dataset.id; snapshot=JSON.stringify(cards);
+ e.dataTransfer.effectAllowed='move'; e.dataTransfer.setData('text/plain',dragId); requestAnimationFrame(()=>t.classList.add('dragging'));});
+boardEl.addEventListener('dragover',e=>{const l=e.target.closest('.lane'); if(!l||!dragId) return; e.preventDefault();
+ $$('.lane',boardEl).forEach(x=>x.classList.toggle('over',x===l)); const stk=$('.stk',l),a=after(stk,e.clientY); a?stk.insertBefore(drop,a):stk.appendChild(drop);});
+boardEl.addEventListener('dragleave',e=>{if(!e.relatedTarget||!boardEl.contains(e.relatedTarget)){drop.remove();$$('.lane',boardEl).forEach(x=>x.classList.remove('over'));}});
+boardEl.addEventListener('drop',e=>{const l=e.target.closest('.lane'); if(!l||!dragId) return; e.preventDefault();
+ const a=after($('.stk',l),e.clientY), c=cards.find(x=>x.id===dragId), from=c.s;
+ cards=cards.filter(x=>x!==c); c.s=l.dataset.s; if(from!==c.s) c.up='just now';
+ const i=a?cards.findIndex(x=>x.id===a.dataset.id):-1; i>=0?cards.splice(i,0,c):cards.push(c);
+ drop.remove(); dragId=null; renderAll(); if(from!==c.s) toast(`${c.id} moved to ${sOf(c.s).n}`);});
+boardEl.addEventListener('dragend',()=>{drop.remove();dragId=null;renderAll();});
+boardEl.addEventListener('click',e=>{const t=e.target.closest('.tc'); if(t) openDrawer(t.dataset.id);});
+
+/* home */
+function renderHome(){
+ const mine=cards.filter(c=>c.who==='AR'&&c.s!=='pass');
+ $('#mineCount').textContent=mine.length+' open';
+ $('#mine').innerHTML=`<table><thead><tr><th>Key</th><th>Summary</th><th>Status</th><th>Priority</th></tr></thead><tbody>${mine.map(c=>`<tr data-open="${c.id}" style="cursor:pointer"><td class="key">${c.id}</td><td class="summ">${c.t}</td><td>${loz(c.s)}</td><td>${prio(c.pr)}</td></tr>`).join('')}</tbody></table>`;
+ const seg=(p,f,pr,b,t)=>{const tot=p+f+pr+b+t||1;return `<div class="stack"><i class="s-pass" style="width:${p/tot*100}%"></i><i class="s-fail" style="width:${f/tot*100}%"></i><i class="s-prog" style="width:${pr/tot*100}%"></i><i class="s-block" style="width:${b/tot*100}%"></i></div>`;};
+ const run=(name,k,p,f,pr,b,t,extra)=>`<div class="run"><div class="t"><b>${name}</b><span class="key">${k}</span></div>${seg(p,f,pr,b,t)}<div class="m"><span class="lg"><i class="s-pass"></i>${p}</span><span class="lg"><i class="s-fail"></i>${f}</span><span class="lg"><i class="s-prog"></i>${pr}</span><span class="lg"><i class="s-block"></i>${b}</span><span class="lg"><i style="background:var(--neu-t)"></i>${t}</span><span style="margin-left:auto">${extra}</span></div></div>`;
+ $('#runs').innerHTML=run('NovaBank Transfers','Run #3',count('pass'),count('fail'),count('prog'),count('block'),count('notrun'),'2 of 5 seeded bugs found')
+  +run('PayLane Checkout','Run #1',3,1,0,0,14,'1 of 18 seeded bugs found')+run('Fundamentals','Track',7,0,0,0,5,'7 of 12 challenges');
+ $('#feed').innerHTML=`<div><b>TC-014</b> started by you<small>2 minutes ago</small></div><div>You reported <b>BUG-007</b>, matched to a seeded defect<small>18 minutes ago · +40 pts</small></div><div>Priya Nair failed <b>TC-011</b><small>1 hour ago</small></div><div>Tomasz Weber commented on <b>TC-016</b><small>4 hours ago</small></div>`;
+}
+$('#mine').addEventListener('click',e=>{const r=e.target.closest('[data-open]'); if(r) openDrawer(r.dataset.open);});
+
+/* report */
+function renderReport(){
+ const tot=cards.length, ex=count('pass')+count('fail'), pr=ex?Math.round(count('pass')/ex*100):0;
+ $('#verdict').innerHTML=`<b style="font-weight:600">Not ready for release.</b> ${ex} of ${tot} test cases executed (${Math.round(ex/tot*100)}%) with a ${pr}% pass rate. ${count('fail')} failed, ${count('block')} blocked and ${count('prog')} still in progress. Two high-severity defects remain open in the funds transfer flow.`;
+ const row=(s,cls)=>{const n=count(s);return `<tr><td>${loz(s)}</td><td style="width:60px;text-align:right" class="key">${n}</td><td style="width:60px;text-align:right" class="sub">${Math.round(n/tot*100)}%</td><td style="width:45%"><div class="stack"><i class="${cls}" style="width:${n/tot*100}%"></i></div></td></tr>`;};
+ $('#exec').innerHTML=`<table><tbody>${row('pass','s-pass')}${row('fail','s-fail')}${row('prog','s-prog')}${row('block','s-block')}${row('notrun','')}</tbody></table>`;
+ $('#matrix').innerHTML=Object.keys(REQS).map(r=>{const l=cards.filter(c=>c.req===r), e=l.filter(c=>c.s==='pass'||c.s==='fail').length;
+  return `<tr><td><span class="tag">${r}</span> ${REQS[r]}</td><td>${l.map(c=>`<i class="cell ${c.s}" title="${c.id} · ${c.t} · ${sOf(c.s).n}"></i>`).join('')}</td><td class="sub">${e} of ${l.length}</td></tr>`;}).join('');
+}
+$('#report').addEventListener('click',e=>{const h=e.target.closest('[data-hint]'); if(h) h.replaceWith(Object.assign(document.createElement('span'),{textContent:h.dataset.hint,className:'sub'}));});
+
+/* drawer */
+const drawer=$('#drawer'),scrim=$('#scrim'); let openId=null;
+function drawerHTML(c){
+ return `<h2>${c.t}</h2><div class="props"><span>Status</span><div class="seg">${STATUS.map(s=>`<button data-st="${s.k}" class="${s.k===c.s?'on':''}">${s.n}</button>`).join('')}</div>
+ <span>Priority</span><span>${prio(c.pr)}</span><span>Assignee</span><span class="row" style="gap:6px">${avt(c.who)}${PEOPLE[c.who][0]}</span>
+ <span>Requirement</span><span><span class="tag">${c.req}</span> ${REQS[c.req]}</span><span>Environment</span><span>Staging · Chrome 126</span>
+ <span>Linked bug</span><span>${c.bug?`<span class="bugchip">${c.bug}</span>`:'<span class="sub">None</span>'}</span></div>
+ <div class="sec"><h3>Preconditions</h3><div class="in sub">Signed in with a funded checking account (balance ≥ $500).</div></div>
+ <div class="sec"><h3>Steps · ${c.steps}</h3><table><thead><tr><th>#</th><th>Action</th><th>Expected</th><th>Actual</th></tr></thead><tbody>
+ <tr><td class="key">1</td><td>Open the Transfer page</td><td>Form is shown</td><td class="ok">As expected</td></tr>
+ <tr><td class="key">2</td><td>Enter amount <span class="key">-50</span></td><td>Inline error</td><td>No error</td></tr>
+ <tr><td class="key">3</td><td>Press Send</td><td>Transfer blocked</td><td class="bad">Accepted, balance +50</td></tr></tbody></table></div>
+ <div class="row" style="margin-bottom:18px"><button class="btn" data-st="pass">${icon('chkx')}Pass</button><button class="btn" data-st="fail">${icon('xx')}Fail</button><button class="btn" data-st="block">${icon('ban')}Block</button><span class="sp"></span><button class="btn pri">${icon('bug')}Report bug</button></div>
+ <h2>Activity</h2>
+ <div class="tl"><span class="av a">AR</span><div><b>You</b> changed status to <b>${sOf(c.s).n}</b><small>${c.up}</small></div></div>
+ <div class="tl"><span class="av a">AR</span><div><b>You</b> commented<div class="quote">Reproducible every time. Also accepts -0.01.</div><small>18 minutes ago</small></div></div>`;
+}
+function openDrawer(id){openId=id;const c=cards.find(x=>x.id===id);$('#dkey').textContent=c.id;$('#dbody').innerHTML=drawerHTML(c);paintIcons();drawer.classList.add('on');scrim.classList.add('on');drawer.setAttribute('aria-hidden','false');}
+function closeDrawer(){drawer.classList.remove('on');scrim.classList.remove('on');drawer.setAttribute('aria-hidden','true');openId=null;}
+$('#dbody').addEventListener('click',e=>{const b=e.target.closest('[data-st]'); if(b&&openId) setStatus([openId],b.dataset.st);});
+$('#dclose').addEventListener('click',closeDrawer); scrim.addEventListener('click',closeDrawer);
+
+/* toast */
+let tt; const toastEl=$('#toast');
+function toast(m){$('#toastmsg').textContent=m;toastEl.classList.add('on');clearTimeout(tt);tt=setTimeout(()=>toastEl.classList.remove('on'),4000);}
+$('#undo').addEventListener('click',()=>{if(snapshot){cards=JSON.parse(snapshot);renderAll();if(openId)$('#dbody').innerHTML=drawerHTML(cards.find(x=>x.id===openId));}toastEl.classList.remove('on');});
+
+/* keyboard (Linear-style) */
+document.addEventListener('keydown',e=>{
+ if(e.key==='Escape'){closeDrawer();document.activeElement.blur&&document.activeElement.blur();return;}
+ const typing=/INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName)&&document.activeElement.type!=='checkbox';
+ if(typing||e.metaKey||e.ctrlKey||e.altKey) return;
+ if(e.key==='/'){e.preventDefault();$('#q').focus();return;}
+ if(!$('#cases').classList.contains('show')) return;
+ const v=vis(), k=e.key.toLowerCase();
+ if(k==='j'||k==='arrowdown'){e.preventDefault();cur=Math.min(v.length-1,cur+1);renderRows();$('#rows .cur')?.scrollIntoView({block:'nearest'});}
+ else if(k==='k'||k==='arrowup'){e.preventDefault();cur=Math.max(0,cur-1);renderRows();$('#rows .cur')?.scrollIntoView({block:'nearest'});}
+ else if(cur>=0&&v[cur]){const c=v[cur];
+  if(k==='enter')openDrawer(c.id); else if(k==='x'){sel.has(c.id)?sel.delete(c.id):sel.add(c.id);renderRows();}
+  else if(k==='p')setStatus([c.id],'pass'); else if(k==='f')setStatus([c.id],'fail'); else if(k==='b')setStatus([c.id],'block');}
+});
+
+/* nav, theme */
+const NAMES={home:'For you',cases:'Test cases',board:'Board',bugs:'Bugs',report:'Test summary'};
+function go(id){$$('.page').forEach(p=>p.classList.toggle('show',p.id===id));$$('.nv[data-go]').forEach(n=>n.classList.toggle('on',n.dataset.go===id));$('#crumb').textContent=NAMES[id];}
+$$('[data-go]').forEach(b=>b.addEventListener('click',()=>go(b.dataset.go)));
+function setTheme(t){document.documentElement.dataset.theme=t;$('#themeBtn').innerHTML=icon(t==='dark'?'sun':'moon');try{localStorage.setItem('assertly-mock-theme',t)}catch(e){}}
+$('#themeBtn').addEventListener('click',()=>setTheme(document.documentElement.dataset.theme==='dark'?'light':'dark'));
+function renderAll(){renderRows();renderBoard();renderHome();renderReport();}
+renderAll(); let t0='light'; try{t0=localStorage.getItem('assertly-mock-theme')||'light'}catch(e){} setTheme(t0);
+</script>
+</body>
+</html>

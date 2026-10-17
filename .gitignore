@@ -1,0 +1,35 @@
+# dependencies
+/node_modules
+
+# next.js
+/.next/
+/.next-e2e/
+/.next-e2e-prod/
+/out/
+
+# production
+/build
+
+# testing
+/coverage
+/test-results
+/playwright-report
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# env files: never commit real values. Document variables in .env.example instead.
+.env*
+!.env.example
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+# os / editor / tooling
+.DS_Store
