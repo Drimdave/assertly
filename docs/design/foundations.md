@@ -51,3 +51,21 @@ In dark mode higher levels get lighter surfaces (shadows barely show). Sticky he
 - Neutral surfaces. Blue (`primary`) only for primary actions, selection and links.
 - Status colors only for meaning: success, warning, danger, info. Lozenges are small uppercase bold labels.
 - Radius: 4px controls, 6px, 8px panels and overlays. Full rounding is for avatars only.
+
+### Color of actions
+
+Color on a button tells people how careful to be. Few colors, used the same way everywhere:
+
+| Action | Look | Examples |
+|---|---|---|
+| The main thing to do on this screen | Solid blue (`default`) | Create test case, Save plan, Start session, Report bug, Next |
+| Anything else | Outline or ghost, no color | Cancel, Back, Revert, Add step, Sign out, Skip tour |
+| Deletes, discards or cannot be taken back | Solid red (`destructive`) in the confirmation; red text or red outline on the button that opens it | Delete, Discard, Reset progress, Revoke, End session |
+
+Rules:
+- Red is for **consequences, not for leaving**. Sign out is neutral: you can sign straight back in, nothing is lost, and painting it red would make people afraid of an ordinary action. GitHub, Jira, Google and Linear all do the same.
+- **Stopping something live is red.** End session, like ending a call or stopping a recording, cannot be undone (the clock cannot be restarted), so the button that opens it is a red outline and its confirmation is solid red.
+- A destructive action is **confirmed in a dialog** whose confirm button is red and whose cancel button is not, so the wrong one is never the colored one by habit. Where Undo exists (delete a test case) the dialog still asks, and Undo remains after.
+- One solid blue button per screen or dialog. Two blue buttons side by side means the page has not decided what matters.
+- Color is never the only signal: red actions also say what they do in words (Delete, Discard), and meet 4.5:1 contrast in light and dark (5.6:1 and 7.6:1).
+- Red text next to a field is an error, not a button: it states what to fix.

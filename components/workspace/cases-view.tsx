@@ -479,7 +479,7 @@ export function CasesView({ projectSlug }: { projectSlug: string }) {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
+            <AlertDialogAction destructive
               onClick={() => {
                 workspace.reset()
                 setSelected(new Set())

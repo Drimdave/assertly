@@ -89,7 +89,7 @@ export function ChallengeTable() {
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={resetAll}>Reset progress</AlertDialogAction>
+              <AlertDialogAction destructive onClick={resetAll}>Reset progress</AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>

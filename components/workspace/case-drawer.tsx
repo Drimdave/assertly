@@ -106,7 +106,7 @@ export function CaseDrawer({ target, project, cases, activity, onClose, onOpen }
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Keep editing</AlertDialogCancel>
-            <AlertDialogAction
+            <AlertDialogAction destructive
               onClick={() => {
                 setConfirmDiscard(false)
                 forceClose()
@@ -469,7 +469,7 @@ function DeleteButton({ testCase, onClose }: { testCase: TestCase; onClose: () =
   const [open, setOpen] = useState(false)
   return (
     <>
-      <Button type="button" variant="ghost" className="text-destructive hover:text-destructive" onClick={() => setOpen(true)}>
+      <Button type="button" variant="destructive-ghost" onClick={() => setOpen(true)}>
         <Trash2 /> Delete
       </Button>
       <AlertDialog open={open} onOpenChange={setOpen}>
@@ -480,7 +480,7 @@ function DeleteButton({ testCase, onClose }: { testCase: TestCase; onClose: () =
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
+            <AlertDialogAction destructive
               onClick={() => {
                 workspace.deleteCases([testCase.id])
                 onClose()

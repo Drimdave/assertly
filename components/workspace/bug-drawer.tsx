@@ -87,7 +87,7 @@ export function BugDrawer({ target, project, bugs, cases, sessions, onClose }: B
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Keep editing</AlertDialogCancel>
-            <AlertDialogAction
+            <AlertDialogAction destructive
               onClick={() => {
                 setConfirmDiscard(false)
                 forceClose()
@@ -299,7 +299,7 @@ function DeleteBug({ bug, onClose }: { bug: BugReport; onClose: () => void }) {
   const [open, setOpen] = useState(false)
   return (
     <>
-      <Button type="button" variant="ghost" className="text-destructive hover:text-destructive" onClick={() => setOpen(true)}>
+      <Button type="button" variant="destructive-ghost" onClick={() => setOpen(true)}>
         <Trash2 /> Delete
       </Button>
       <AlertDialog open={open} onOpenChange={setOpen}>
@@ -310,7 +310,7 @@ function DeleteBug({ bug, onClose }: { bug: BugReport; onClose: () => void }) {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
+            <AlertDialogAction destructive
               onClick={() => {
                 workspace.deleteBug(bug.id)
                 onClose()

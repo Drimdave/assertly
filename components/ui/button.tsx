@@ -12,6 +12,11 @@ const buttonVariants = cva(
         default: "bg-primary text-primary-foreground hover:bg-primary/90",
         destructive:
           "bg-destructive text-destructive-foreground hover:bg-destructive/90",
+        // Red outline: opens a risky action (End session) without shouting; the confirmation is solid red
+        "destructive-outline":
+          "border border-destructive/50 bg-background text-destructive hover:bg-destructive/10",
+        // Red text: a quiet Delete that is still unmistakably Delete
+        "destructive-ghost": "text-destructive hover:bg-destructive/10",
         outline:
           "border border-input bg-background hover:bg-accent",
         secondary:

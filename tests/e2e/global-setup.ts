@@ -1,7 +1,9 @@
+import { CONSOLE_ROUTES } from "./routes"
+
 // The dev server compiles each route the first time it is visited, which can take many seconds and makes
 // parallel console tests time out on a cold cache. Visit every route once, in order, before any test runs.
 const DEV_PORT = 3101
-const ROUTES = ["/app", "/learn", "/learn/email", "/app/novabank/cases", "/app/novabank/board", "/app/novabank/report"]
+const ROUTES = CONSOLE_ROUTES
 
 export default async function globalSetup() {
   for (const route of ROUTES) {

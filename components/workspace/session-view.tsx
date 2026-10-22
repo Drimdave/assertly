@@ -130,7 +130,7 @@ function Clock({ session, now }: { session: ExploratorySession; now: number }) {
             </Button>
           )}
           {session.status === "running" && (
-            <Button variant="outline" onClick={() => setConfirmEnd(true)}>
+            <Button variant="destructive-outline" onClick={() => setConfirmEnd(true)}>
               <Square /> End session
             </Button>
           )}
@@ -161,7 +161,7 @@ function Clock({ session, now }: { session: ExploratorySession; now: number }) {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Keep exploring</AlertDialogCancel>
-            <AlertDialogAction onClick={() => workspace.endSession(session.id)}>End session</AlertDialogAction>
+            <AlertDialogAction destructive onClick={() => workspace.endSession(session.id)}>End session</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
@@ -376,7 +376,7 @@ function DeleteSession({ session, projectSlug }: { session: ExploratorySession; 
   if (session.status === "running") return null
   return (
     <div className="border-t pt-4">
-      <Button variant="ghost" className="text-destructive hover:text-destructive" onClick={() => setOpen(true)}>
+      <Button variant="destructive-ghost" onClick={() => setOpen(true)}>
         <Trash2 /> Delete session
       </Button>
       <AlertDialog open={open} onOpenChange={setOpen}>
@@ -387,7 +387,7 @@ function DeleteSession({ session, projectSlug }: { session: ExploratorySession; 
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
+            <AlertDialogAction destructive
               onClick={() => {
                 workspace.deleteSession(session.id)
                 router.push(`/app/${projectSlug}/sessions`)
