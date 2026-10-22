@@ -11,6 +11,8 @@ export interface NavItem {
   exact?: boolean
   /** Opens in a new tab: a different app (the system under test), not another page of this one. */
   external?: boolean
+  /** What the guided tour points at (rendered as `data-tour`). */
+  tourId?: string
 }
 
 export interface NavGroup {
@@ -35,24 +37,24 @@ export function navGroups(project: string): NavGroup[] {
     {
       label: "Plan",
       items: [
-        { label: "Requirements", href: `/app/${project}/requirements`, icon: ClipboardList },
-        { label: "Test plan", href: `/app/${project}/plan`, icon: ClipboardCheck },
+        { label: "Requirements", href: `/app/${project}/requirements`, icon: ClipboardList, tourId: "requirements" },
+        { label: "Test plan", href: `/app/${project}/plan`, icon: ClipboardCheck, tourId: "plan" },
       ],
     },
     {
       label: "Test",
       items: [
-        ...(system ? [{ label: system.label, href: system.href, icon: ExternalLink, external: true }] : []),
-        { label: "Test cases", href: `/app/${project}/cases`, icon: ListChecks },
-        { label: "Board", href: `/app/${project}/board`, icon: LayoutGrid },
-        { label: "Sessions", href: `/app/${project}/sessions`, icon: Compass },
+        ...(system ? [{ label: system.label, href: system.href, icon: ExternalLink, external: true, tourId: "system" }] : []),
+        { label: "Test cases", href: `/app/${project}/cases`, icon: ListChecks, tourId: "cases" },
+        { label: "Board", href: `/app/${project}/board`, icon: LayoutGrid, tourId: "board" },
+        { label: "Sessions", href: `/app/${project}/sessions`, icon: Compass, tourId: "sessions" },
       ],
     },
     {
       label: "Report",
       items: [
-        { label: "Bugs", href: `/app/${project}/bugs`, icon: Bug },
-        { label: "Test summary", href: `/app/${project}/report`, icon: FileText },
+        { label: "Bugs", href: `/app/${project}/bugs`, icon: Bug, tourId: "bugs" },
+        { label: "Test summary", href: `/app/${project}/report`, icon: FileText, tourId: "summary" },
       ],
     },
   ]

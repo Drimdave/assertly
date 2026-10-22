@@ -7,7 +7,8 @@ import { DEFAULT_PROJECT_SLUG, SEED_CASE_COUNT } from "@/lib/workspace/seed"
 export interface PathInputs {
   /** Pages the tester has opened that leave no trace in their data ("requirements", "report"). */
   seen: ReadonlySet<string>
-  fundamentalsCompleted: number
+  /** Challenges the tester has started (found at least one behavior or submitted at least once). */
+  fundamentalsStarted: number
   /** Has anything been done in the NovaBank app (signed in, transferred, triggered a defect)? */
   usedSandbox: boolean
   cases: { key: string; status: string }[]
@@ -49,7 +50,7 @@ export function buildPath(i: PathInputs): PathLevel[] {
       title: "Start simple",
       blurb: "Get your bearings, then do the basic loop: write a check, run it, report a problem.",
       steps: [
-        { id: "fundamentals", label: "Try a Fundamentals challenge", why: "Discover how a form really behaves, one rule at a time.", href: "/learn", done: i.fundamentalsCompleted >= 1 },
+        { id: "fundamentals", label: "Try a Fundamentals challenge", why: "Discover how a form really behaves, one rule at a time. Starting one counts.", href: "/learn", done: i.fundamentalsStarted >= 1 },
         { id: "requirements", label: "Read the requirements", why: "Testing means comparing what the system does with what it should do.", href: `${P}/requirements`, done: i.seen.has("requirements") },
         { id: "novabank", label: "Try the NovaBank app", why: "Sign in and move some money, to get a feel for what you will test.", href: "/sandbox/novabank", done: i.usedSandbox },
         { id: "own-case", label: "Write a test case of your own", why: "A test case says what to do and what you expect to happen.", href: `${P}/cases`, done: i.nextCaseNumber > SEED_CASE_COUNT + 1 },

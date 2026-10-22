@@ -1,4 +1,4 @@
-import { test as base, type Browser, type BrowserContextOptions } from "@playwright/test"
+import { test as base, type Browser, type BrowserContextOptions, type Page } from "@playwright/test"
 
 export { expect } from "@playwright/test"
 export type { Browser, Locator, Page } from "@playwright/test"
@@ -23,4 +23,20 @@ export async function newContext(browser: Browser, options: BrowserContextOption
   const context = await browser.newContext(options)
   await context.addInitScript(DISMISSED)
   return context
+}
+
+/**
+ * Waits for animations and transitions that will end. A scan that catches a toast or dialog mid-fade sees it half
+ * transparent and briefly fails contrast. Animations that loop forever (the tour's pulsing ring) never finish, so
+ * they are left out, or this would wait for ever.
+ */
+export async function settleAnimations(page: Page) {
+  await page.evaluate(() =>
+    Promise.all(
+      document
+        .getAnimations()
+        .filter((a) => a.effect?.getComputedTiming().iterations !== Infinity)
+        .map((a) => a.finished.catch(() => null)),
+    ),
+  )
 }

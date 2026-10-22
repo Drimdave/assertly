@@ -1,5 +1,5 @@
 import AxeBuilder from "@axe-core/playwright"
-import { expect, newContext, test, type Browser, type Page } from "./fixtures"
+import { expect, newContext, settleAnimations, test, type Browser, type Page } from "./fixtures"
 
 const unique = () => `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
 const PASSWORD = "correct-horse-battery"
@@ -274,10 +274,8 @@ test.describe("sharing a report", () => {
       await page.getByRole("button", { name: "Create link" }).click()
       const link = page.getByRole("list", { name: "Active share links" }).getByRole("link")
       await expect(link).toHaveCount(1)
-      // A toast or popover caught mid-fade is half transparent and fails contrast for a moment: wait for animations first
-      const settle = (p: Page) => p.evaluate(() => Promise.all(document.getAnimations().map((a) => a.finished.catch(() => null))))
       const scan = async (p: Page) =>
-        (await settle(p), await new AxeBuilder({ page: p }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"]).analyze()).violations.map((v) => `${v.id}: ${v.help} :: ${v.nodes.map((n) => n.target.join(" ")).slice(0, 3).join(" ;; ")}`)
+        (await settleAnimations(p), await new AxeBuilder({ page: p }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"]).analyze()).violations.map((v) => `${v.id}: ${v.help} :: ${v.nodes.map((n) => n.target.join(" ")).slice(0, 3).join(" ;; ")}`)
       expect(await scan(page)).toEqual([])
 
       const viewer = await newContext(browser, { colorScheme: scheme })

@@ -167,3 +167,14 @@
     display: none !important;
   }
 }
+
+/* Someone who asks their system for less motion gets the tour's highlight and card in place, not gliding or pulsing */
+@media (prefers-reduced-motion: reduce) {
+  [data-tour-spotlight],
+  [data-tour-card] {
+    transition: none !important;
+  }
+  [data-tour-spotlight] span {
+    animation: none !important;
+  }
+}

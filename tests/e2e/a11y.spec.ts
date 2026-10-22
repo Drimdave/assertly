@@ -1,5 +1,5 @@
 import AxeBuilder from "@axe-core/playwright"
-import { expect, test, type Page } from "./fixtures"
+import { expect, settleAnimations, test, type Page } from "./fixtures"
 
 const PAGES = [
   { name: "for you", path: "/app" },
@@ -18,8 +18,7 @@ const PAGES = [
 ]
 
 async function scan(page: Page) {
-  // An element caught mid-fade is half transparent and fails contrast for a moment: let animations finish first
-  await page.evaluate(() => Promise.all(document.getAnimations().map((a) => a.finished.catch(() => null))))
+  await settleAnimations(page)
   const results = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"]).analyze()
   // Print readable output if something fails
   return results.violations.map((v) => `${v.id} (${v.impact}): ${v.help}\n  ${v.nodes.map((n) => n.target.join(" ")).slice(0, 4).join("\n  ")}`)
@@ -94,6 +93,14 @@ for (const scheme of ["light", "dark"] as const) {
       await page.getByRole("button", { name: "Start session" }).click()
       await page.goto("/app/novabank/report")
       await expect(page.getByRole("heading", { name: "Exploratory sessions" })).toBeVisible()
+      expect(await scan(page)).toEqual([])
+    })
+
+    test("a red confirmation dialog meets contrast", async ({ page }) => {
+      await page.goto("/app/novabank/cases")
+      await page.getByRole("button", { name: "Negative amount is rejected" }).click()
+      await page.getByRole("dialog").getByRole("button", { name: "Delete" }).click()
+      await expect(page.getByRole("alertdialog")).toBeVisible()
       expect(await scan(page)).toEqual([])
     })
 

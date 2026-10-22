@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest"
 
 import { buildPath, currentLevel, pathTotals, type PathInputs } from "@/lib/onboarding/path"
+import { navGroups } from "@/components/shell/nav-config"
 import { TOUR_STEPS } from "@/lib/onboarding/tour"
 import { createSeedState, SEED_CASE_COUNT } from "@/lib/workspace/seed"
 
@@ -9,7 +10,7 @@ const seed = createSeedState(new Date("2026-06-01T00:00:00Z"))
 /** What a brand-new visitor looks like: the starter project and nothing of their own. */
 const fresh = (): PathInputs => ({
   seen: new Set(),
-  fundamentalsCompleted: 0,
+  fundamentalsStarted: 0,
   usedSandbox: false,
   cases: seed.cases.map((c) => ({ key: c.key, status: c.status })),
   nextCaseNumber: seed.nextCaseNumber.novabank,
@@ -46,9 +47,14 @@ describe("your path", () => {
     expect(step(ran, "run-own").done).toBe(true)
   })
 
+  it("counts a Fundamentals challenge as tried once it has been started, not only when it is finished", () => {
+    expect(step({ ...fresh(), fundamentalsStarted: 0 }, "fundamentals").done).toBe(false)
+    expect(step({ ...fresh(), fundamentalsStarted: 1 }, "fundamentals").done).toBe(true)
+  })
+
   it("derives each step from real data", () => {
     const base = fresh()
-    expect(step({ ...base, fundamentalsCompleted: 1 }, "fundamentals").done).toBe(true)
+    expect(step({ ...base, fundamentalsStarted: 1 }, "fundamentals").done).toBe(true)
     expect(step({ ...base, seen: new Set(["requirements"]) }, "requirements").done).toBe(true)
     expect(step({ ...base, seen: new Set(["report"]) }, "summary").done).toBe(true)
     expect(step({ ...base, usedSandbox: true }, "novabank").done).toBe(true)
@@ -74,7 +80,7 @@ describe("your path", () => {
 
   it("moves the current level on as each is completed, and ends with none", () => {
     const l1: PathInputs = {
-      ...fresh(), fundamentalsCompleted: 2, seen: new Set(["requirements"]), usedSandbox: true,
+      ...fresh(), fundamentalsStarted: 2, seen: new Set(["requirements"]), usedSandbox: true,
       nextCaseNumber: SEED_CASE_COUNT + 2, bugs: [{ caseId: "c1", sessionId: "s1" }],
     }
     const levels = buildPath(l1)
@@ -104,7 +110,7 @@ describe("your path", () => {
 
 describe("the tour", () => {
   it("has a handful of steps in the order the work happens, with unique ids", () => {
-    expect(TOUR_STEPS.map((s) => s.id)).toEqual(["welcome", "system", "requirements", "plan", "explore", "report", "summary"])
+    expect(TOUR_STEPS.map((s) => s.id)).toEqual(["welcome", "system", "requirements", "plan", "cases", "explore", "report", "summary"])
     expect(new Set(TOUR_STEPS.map((s) => s.id)).size).toBe(TOUR_STEPS.length)
   })
 
@@ -113,6 +119,15 @@ describe("the tour", () => {
       expect(s.title.length).toBeLessThan(40)
       expect(s.body.length).toBeLessThan(420)
     }
+  })
+
+  it("only points at sidebar items that exist", () => {
+    const ids = new Set(navGroups("novabank").flatMap((g) => g.items.map((i) => i.tourId).filter(Boolean)))
+    for (const s of TOUR_STEPS) for (const target of s.targets ?? []) expect(ids.has(target), `${s.id} points at "${target}"`).toBe(true)
+  })
+
+  it("points at something on every step but the welcome", () => {
+    expect(TOUR_STEPS.filter((s) => !s.targets).map((s) => s.id)).toEqual(["welcome"])
   })
 
   it("links to real pages, and only the practice app opens in a new tab", () => {

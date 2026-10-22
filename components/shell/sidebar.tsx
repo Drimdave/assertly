@@ -51,6 +51,7 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
                 <a
                   key={item.label}
                   href={item.href}
+                  data-tour={item.tourId}
                   target="_blank"
                   rel="noopener noreferrer"
                   onClick={onNavigate}
@@ -67,6 +68,7 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
               <Link
                 key={item.label}
                 href={item.href}
+                data-tour={item.tourId}
                 onClick={onNavigate}
                 aria-current={active ? "page" : undefined}
                 className={cn(

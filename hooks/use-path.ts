@@ -8,7 +8,8 @@ import { useSandboxState } from "@/hooks/use-sandbox"
 import { useWorkspaceState } from "@/hooks/use-workspace"
 import { useOnboarding } from "@/lib/onboarding/flags"
 import { buildPath, currentLevel, pathTotals, type PathLevel } from "@/lib/onboarding/path"
-import { overallProgress } from "@/lib/learn/progress"
+import { CHALLENGES } from "@/lib/learn/challenges"
+import { challengeProgress } from "@/lib/learn/progress"
 import { evaluatePlan } from "@/lib/workspace/plan"
 import { DEFAULT_PROJECT_SLUG } from "@/lib/workspace/seed"
 import { assess } from "@/lib/workspace/scoring"
@@ -37,7 +38,11 @@ export function usePath(): PathState {
     const plan = workspace.plans.find((p) => p.projectSlug === slug)
     const levels = buildPath({
       seen,
-      fundamentalsCompleted: overallProgress(learn).completed,
+      // Started, not finished: "try a challenge" is done the moment you have found a behavior or submitted once
+      fundamentalsStarted: CHALLENGES.filter((c) => {
+        const p = challengeProgress(c.slug, learn)
+        return p.found > 0 || p.attempts > 0
+      }).length,
       usedSandbox: !!sandbox.session || !!sandbox.staleSession || sandbox.transactions.length > 0 || sandbox.hits.length > 0 || sandbox.failedLogins > 0,
       cases: cases.map((c) => ({ key: c.key, status: c.status })),
       nextCaseNumber: workspace.nextCaseNumber[slug] ?? 1,
