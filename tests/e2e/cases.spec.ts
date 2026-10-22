@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test"
+import { expect, test, type Page } from "./fixtures"
 
 const open = async (page: Page) => {
   await page.goto("/app/novabank/cases")

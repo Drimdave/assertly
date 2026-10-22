@@ -286,3 +286,22 @@ Order agreed: test plan editor, then exploratory sessions, then a second scenari
 
 **Next:** a second scenario with its own seeded defects, then a traceability matrix.
 
+## 15. Onboarding (tour, path, sidebar)
+
+Added because the platform had grown past what a newcomer can take in at once. The principle: simple first, complexity on request, and always a visible "what next".
+
+- **Sidebar** (`components/shell/nav-config.ts`): regrouped in the order the work happens, Learn, Plan (Requirements, Test plan), Test (the NovaBank app, Test cases, Board, Sessions), Report (Bugs, Test summary). The practice app is in the list as a new-tab link, because it is the thing being tested. Breadcrumbs now name every page (they showed the raw route segment before).
+- **Tour** (`components/onboarding/tour-dialog.tsx`, steps in `lib/onboarding/tour.ts`): seven short steps, plain words, each with one "take me there" action. A modal, because it asks for attention once; offered only on the home page and only to someone who has never dismissed it, never on a deep link. Skip, Escape and finishing all count as done. Focus starts on Next, arrow keys step, the step counter is announced. Reopen from the sidebar or the home page.
+- **Your path** (`lib/onboarding/path.ts`, `hooks/use-path.ts`): thirteen steps in three levels (Start simple, Do it properly, Go deeper), computed from real data so it cannot be ticked by clicking: a test case is "yours" only if its number is above the starter set, a session counts only when ended with notes, exit criteria need a plan. Two steps leave no trace in the data ("read the requirements", "read the summary"), so opening those pages records a flag in this browser. Nothing is locked.
+- **Local, not synced, on purpose:** the tour-dismissed flag and the opened-pages flags live in this browser only (`lib/onboarding/flags.ts`). Putting a page view in the synced workspace would bump the saved revision on every visit and clobber Undo. The cost: a second device shows the tour again and two path steps unticked. Signing out clears both, so the next person on that computer starts fresh.
+- **Tests:** unit tests for the path rules (including that the starter project's executed cases are not progress) and the tour; e2e for the tour (first visit, not forced elsewhere, Next/Back, keyboard, skip and Escape persist, reopen, finish, new-tab link, accessibility on first and last step in light and dark), the path (ticks from real actions), the sidebar order and breadcrumbs. Playwright now goes through `tests/e2e/fixtures.ts`, which marks the tour dismissed so it does not block unrelated tests; tour tests opt out with `test.use({ tourDone: false })`.
+- One intermittent failure was seen once (four light-mode accessibility checks failing in a single full run, message not captured) and did not reproduce in three further full runs or in a threefold repeat of that spec. Noted, not explained.
+
+## 16. Launch checklist (data and first impressions)
+
+The platform will look new at launch because nothing here is shared:
+- **Production database:** create a fresh Neon database and run `npm run db:migrate`. It starts empty. Nothing from development reaches it; the development database is the gitignored `.data/` folder on this machine.
+- **Visitors:** every new visitor gets the starter project and an empty path. Test data in this browser's storage (`assertly:*` keys) is local to this browser.
+- **Before launching:** delete `.data/`, check that no `assertly:*` development data or personal test accounts were ever created against the production database, set `BETTER_AUTH_SECRET` and `BETTER_AUTH_URL`, and decide the landing page (Phase 5).
+- If the stored data shape changes after launch, add a line to `migrateWorkspace`; do not bump the storage key, which would discard people's work.
+

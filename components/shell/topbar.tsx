@@ -17,11 +17,22 @@ interface Crumb {
 }
 
 function crumbsFor(pathname: string): Crumb[] {
-  const [section, slug, page] = pathname.split("/").filter(Boolean)
+  const [section, slug, page, id] = pathname.split("/").filter(Boolean)
   if (section === "app" && slug && page) {
-    const names: Record<string, string> = { cases: "Test cases", board: "Board", report: "Test summary" }
+    const names: Record<string, string> = {
+      requirements: "Requirements",
+      plan: "Test plan",
+      cases: "Test cases",
+      sessions: "Sessions",
+      board: "Board",
+      bugs: "Bugs",
+      report: "Test summary",
+    }
     const projectName = slug === NOVABANK.slug ? NOVABANK.name : slug
-    return [{ label: projectName, href: "/app" }, { label: names[page] ?? page }]
+    const crumbs: Crumb[] = [{ label: projectName, href: "/app" }]
+    // A single session sits under the list of sessions
+    if (page === "sessions" && id) return [...crumbs, { label: "Sessions", href: `/app/${slug}/sessions` }, { label: "Session" }]
+    return [...crumbs, { label: names[page] ?? page }]
   }
   if (section === "app") return [{ label: "For you" }]
   if (section === "learn") {

@@ -1,3 +1,4 @@
+import { TourDialog } from "@/components/onboarding/tour-dialog"
 import { Sidebar } from "@/components/shell/sidebar"
 import { Topbar } from "@/components/shell/topbar"
 
@@ -10,6 +11,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       >
         Skip to content
       </a>
+      <TourDialog />
       <Sidebar />
       <div className="flex min-w-0 flex-1 flex-col print:block">
         <Topbar />

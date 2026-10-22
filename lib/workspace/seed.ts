@@ -34,6 +34,9 @@ interface SeedCase {
   steps: TestStep[]
 }
 
+/** How many test cases the starter project ships with: anything numbered above this was written by the tester. */
+export const SEED_CASE_COUNT = 12
+
 const SEED_CASES: SeedCase[] = [
   {
     summary: "Valid login opens the accounts page",

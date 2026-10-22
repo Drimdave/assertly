@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test"
+import { expect, test } from "./fixtures"
 
 test.describe("test summary report", () => {
   test("shows the verdict, coverage and next steps for the starter project", async ({ page }) => {

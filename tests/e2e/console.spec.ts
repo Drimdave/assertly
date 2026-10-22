@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test"
+import { expect, test, type Page } from "./fixtures"
 
 // Runs against the dev server (see playwright.config.ts): React reports hydration mismatches and misuse only there.
 const PAGES = ["/app", "/learn", "/learn/email", "/app/novabank/requirements", "/app/novabank/plan", "/app/novabank/sessions", "/app/novabank/bugs", "/sandbox/novabank", "/sign-in", "/sign-up", "/app/novabank/cases", "/app/novabank/board", "/app/novabank/report"]

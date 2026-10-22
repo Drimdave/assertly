@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react"
 import { toast } from "sonner"
 
+import { resetOnboarding } from "@/lib/onboarding/flags"
 import { clearSyncMeta, startSync, stopSync } from "@/lib/persistence/sync"
 import { useSession } from "@/lib/auth-client"
 import { sandbox } from "@/lib/sandbox/novabank/store"
@@ -25,6 +26,7 @@ export function SyncController() {
         workspace.reset()
         sandbox.resetEverything()
         clearSyncMeta()
+        resetOnboarding()
       }
       return
     }

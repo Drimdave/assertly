@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test"
+import { expect, test } from "./fixtures"
 
 // These submit to the shared in-memory rate limiter (5 per 10 s), so each test sends at most two.
 test.describe("fundamentals", () => {

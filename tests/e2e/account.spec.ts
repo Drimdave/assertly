@@ -1,5 +1,5 @@
 import AxeBuilder from "@axe-core/playwright"
-import { expect, test, type Browser, type Page } from "@playwright/test"
+import { expect, newContext, test, type Browser, type Page } from "./fixtures"
 
 const unique = () => `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
 const PASSWORD = "correct-horse-battery"
@@ -30,7 +30,7 @@ async function signInAndWait(page: Page, email: string) {
 }
 
 async function freshPage(browser: Browser) {
-  const context = await browser.newContext()
+  const context = await newContext(browser)
   return { page: await context.newPage(), context }
 }
 
@@ -59,7 +59,7 @@ test.describe("accounts and saving", () => {
   test("guests are told how to keep their work", async ({ page }) => {
     await page.goto("/app")
     await expect(page.getByText("Guest")).toBeVisible()
-    await page.getByRole("link", { name: "Sign in" }).click()
+    await page.getByRole("link", { name: "Sign in", exact: true }).click()
     await expect(page).toHaveURL(/\/sign-in$/)
   })
 
@@ -265,7 +265,7 @@ test.describe("sharing a report", () => {
 
   for (const scheme of ["light", "dark"] as const) {
     test(`the share popover and the shared page have no WCAG violations (${scheme})`, async ({ browser }) => {
-      const owner = await browser.newContext({ colorScheme: scheme })
+      const owner = await newContext(browser, { colorScheme: scheme })
       const page = await owner.newPage()
       await signUp(page)
       await reportABug(page)
@@ -280,7 +280,7 @@ test.describe("sharing a report", () => {
         (await settle(p), await new AxeBuilder({ page: p }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"]).analyze()).violations.map((v) => `${v.id}: ${v.help} :: ${v.nodes.map((n) => n.target.join(" ")).slice(0, 3).join(" ;; ")}`)
       expect(await scan(page)).toEqual([])
 
-      const viewer = await browser.newContext({ colorScheme: scheme })
+      const viewer = await newContext(browser, { colorScheme: scheme })
       const vp = await viewer.newPage()
       await vp.goto((await link.getAttribute("href"))!)
       await expect(vp.getByRole("heading", { level: 1 })).toBeVisible()

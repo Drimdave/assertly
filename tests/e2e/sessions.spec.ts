@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test"
+import { expect, test, type Page } from "./fixtures"
 
 const SESSIONS = "/app/novabank/sessions"
 const CHARTER = "Explore the transfer form with different amounts to discover what it accepts"

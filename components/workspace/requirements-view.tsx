@@ -1,5 +1,6 @@
 "use client"
 
+import { useEffect } from "react"
 import Link from "next/link"
 import { ArrowRight } from "lucide-react"
 
@@ -7,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Lozenge, type LozengeProps } from "@/components/ui/lozenge"
 import { StatusLozenge } from "@/components/workspace/status-lozenge"
 import { useProject } from "@/hooks/use-workspace"
+import { markSeen } from "@/lib/onboarding/flags"
 import { buildReport, type CoverageState } from "@/lib/workspace/report"
 import { requirementDetail } from "@/lib/workspace/requirements"
 
@@ -20,6 +22,10 @@ const COVERAGE: Record<CoverageState, { label: string; tone: NonNullable<Lozenge
 
 export function RequirementsView({ projectSlug }: { projectSlug: string }) {
   const { ready, project, cases } = useProject(projectSlug)
+  const found = ready && !!project
+  useEffect(() => {
+    if (found) markSeen("requirements")
+  }, [found])
 
   if (ready && !project) {
     return (

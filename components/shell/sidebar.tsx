@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { Logo } from "@/components/brand/logo"
 import { Lozenge } from "@/components/ui/lozenge"
+import { TourButton } from "@/components/onboarding/tour-button"
 import { AccountMenu } from "@/components/shell/account-menu"
 import { ThemeToggle } from "@/components/shell/theme-toggle"
 import { isActive, navGroups, projectFromPath } from "@/components/shell/nav-config"
@@ -45,6 +46,22 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
                 </div>
               )
             }
+            if (item.external) {
+              return (
+                <a
+                  key={item.label}
+                  href={item.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={onNavigate}
+                  className="flex h-8 items-center gap-2.5 rounded-sm px-2 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                >
+                  <Icon className="h-4 w-4" aria-hidden />
+                  {item.label}
+                  <span className="sr-only">(opens in a new tab)</span>
+                </a>
+              )
+            }
             const active = isActive(pathname, item)
             return (
               <Link
@@ -73,9 +90,12 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
 
 export function SidebarFooter() {
   return (
-    <div className="mt-auto flex items-center gap-2 border-t pt-3">
-      <AccountMenu />
-      <ThemeToggle />
+    <div className="mt-auto space-y-2 border-t pt-3">
+      <TourButton variant="ghost" className="w-full justify-start text-muted-foreground" />
+      <div className="flex items-center gap-2">
+        <AccountMenu />
+        <ThemeToggle />
+      </div>
     </div>
   )
 }

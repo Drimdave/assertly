@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo } from "react"
+import { useEffect, useMemo } from "react"
 import Link from "next/link"
 import { Printer } from "lucide-react"
 
@@ -13,6 +13,7 @@ import { useIsClient } from "@/hooks/use-is-client"
 import { useNow } from "@/hooks/use-now"
 import { useSandboxState } from "@/hooks/use-sandbox"
 import { useProject } from "@/hooks/use-workspace"
+import { markSeen } from "@/lib/onboarding/flags"
 import { evaluatePlan } from "@/lib/workspace/plan"
 import { buildReport } from "@/lib/workspace/report"
 import { assess } from "@/lib/workspace/scoring"
@@ -26,6 +27,10 @@ function Generated() {
 
 export function ReportView({ projectSlug }: { projectSlug: string }) {
   const { ready, project, cases, state } = useProject(projectSlug)
+  const found = ready && !!project
+  useEffect(() => {
+    if (found) markSeen("report")
+  }, [found])
   const report = useMemo(() => (project ? buildReport(project, cases) : null), [project, cases])
   const sandbox = useSandboxState()
   const bugs = useMemo(() => state.bugs.filter((b) => b.projectSlug === projectSlug), [state.bugs, projectSlug])
