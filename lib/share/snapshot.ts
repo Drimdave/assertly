@@ -2,6 +2,7 @@ import type { Severity } from "@/lib/sandbox/novabank/bugs"
 import type { SandboxState } from "@/lib/sandbox/novabank/engine"
 import { evaluatePlan, type PlanEvaluation } from "@/lib/workspace/plan"
 import { buildReport, type TestReport } from "@/lib/workspace/report"
+import { sessionRows, type SessionRow } from "@/lib/workspace/sessions"
 import { assess, type Assessment, type ReportVerdict } from "@/lib/workspace/scoring"
 import type { BugReport, WorkspaceState } from "@/lib/workspace/types"
 
@@ -35,6 +36,8 @@ export interface ShareSnapshot {
   assessment: PublicAssessment | null
   /** Absent in links created before test plans existed. */
   plan?: PlanEvaluation | null
+  /** Absent in links created before exploratory sessions existed. */
+  sessions?: SessionRow[]
 }
 
 export function toPublicAssessment(a: Assessment, bugs: BugReport[]): PublicAssessment {
@@ -84,6 +87,7 @@ export function buildShareSnapshot(opts: {
     generatedAt: now.toISOString(),
     report: buildReport(project, cases),
     defects: bugs.map((b) => ({ key: b.key, title: b.title, severity: b.severity, caseKey: cases.find((c) => c.id === b.caseId)?.key ?? null })),
+    sessions: sessionRows(workspace.sessions.filter((x) => x.projectSlug === projectSlug), bugs, project, now.getTime()),
     plan: (() => {
       const plan = workspace.plans.find((p) => p.projectSlug === projectSlug)
       return plan ? evaluatePlan(plan, project, cases, bugs) : null

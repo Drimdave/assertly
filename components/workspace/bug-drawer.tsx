@@ -27,7 +27,7 @@ import { SEVERITIES, SEVERITY_LABEL } from "@/lib/sandbox/novabank/bugs"
 import { cn } from "@/lib/utils"
 import { bugFormSchema, toBugFormValues, toBugInput, type BugFormValues } from "@/lib/workspace/bug-schema"
 import { workspace } from "@/lib/workspace/store"
-import type { BugReport, Project, TestCase } from "@/lib/workspace/types"
+import type { BugReport, ExploratorySession, Project, TestCase } from "@/lib/workspace/types"
 
 export type BugTarget = { kind: "new"; prefill: BugFormValues } | { kind: "bug"; id: string }
 
@@ -36,10 +36,11 @@ interface BugDrawerProps {
   project: Project
   bugs: BugReport[]
   cases: TestCase[]
+  sessions: ExploratorySession[]
   onClose: () => void
 }
 
-export function BugDrawer({ target, project, bugs, cases, onClose }: BugDrawerProps) {
+export function BugDrawer({ target, project, bugs, cases, sessions, onClose }: BugDrawerProps) {
   const bug = target?.kind === "bug" ? bugs.find((b) => b.id === target.id) : undefined
   const open = target !== null && (target.kind === "new" || !!bug)
   const dirty = useRef(false)
@@ -67,6 +68,7 @@ export function BugDrawer({ target, project, bugs, cases, onClose }: BugDrawerPr
               project={project}
               bug={bug}
               cases={cases}
+              sessions={sessions}
               initial={target.kind === "new" ? target.prefill : toBugFormValues(bug!)}
               onDirtyChange={(d) => {
                 dirty.current = d
@@ -121,12 +123,13 @@ interface BugFormProps {
   project: Project
   bug: BugReport | undefined
   cases: TestCase[]
+  sessions: ExploratorySession[]
   initial: BugFormValues
   onDirtyChange: (dirty: boolean) => void
   onClose: () => void
 }
 
-function BugForm({ project, bug, cases, initial, onDirtyChange, onClose }: BugFormProps) {
+function BugForm({ project, bug, cases, sessions, initial, onDirtyChange, onClose }: BugFormProps) {
   const isNew = !bug
   const {
     control,
@@ -217,6 +220,30 @@ function BugForm({ project, bug, cases, initial, onDirtyChange, onClose }: BugFo
             />
           </Field>
         </div>
+
+        {sessions.length > 0 && (
+          <Field label="Found in exploratory session">
+            <Controller
+              control={control}
+              name="sessionId"
+              render={({ field }) => (
+                <Select value={field.value || "none"} onValueChange={(v) => field.onChange(v === "none" ? "" : v)}>
+                  <SelectTrigger aria-label="Found in exploratory session" className="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Not from a session</SelectItem>
+                    {sessions.map((x) => (
+                      <SelectItem key={x.id} value={x.id}>
+                        {x.key} · {x.charter}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            />
+          </Field>
+        )}
 
         <section aria-label="Steps to reproduce" className="space-y-1.5">
           <div className="flex items-center">

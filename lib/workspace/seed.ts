@@ -18,7 +18,7 @@ export const NOVABANK: Project = {
 
 export const KNOWN_PROJECT_SLUGS = [NOVABANK.slug]
 
-export const EMPTY_STATE: WorkspaceState = { v: 1, seq: 0, projects: [], cases: [], activity: [], nextCaseNumber: {}, bugs: [], hints: {}, nextBugNumber: {}, plans: [] }
+export const EMPTY_STATE: WorkspaceState = { v: 1, seq: 0, projects: [], cases: [], activity: [], nextCaseNumber: {}, bugs: [], hints: {}, nextBugNumber: {}, plans: [], sessions: [], nextSessionNumber: {} }
 
 const step = (action: string, expected: string, actual = ""): TestStep => ({ action, expected, actual })
 
@@ -145,5 +145,7 @@ export function createSeedState(now: Date): WorkspaceState {
     hints: {},
     nextBugNumber: { [DEFAULT_PROJECT_SLUG]: 1 },
     plans: [],
+    sessions: [],
+    nextSessionNumber: { [DEFAULT_PROJECT_SLUG]: 1 },
   }
 }

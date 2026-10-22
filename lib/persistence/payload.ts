@@ -2,7 +2,7 @@ import { z } from "zod"
 
 import { ALL_BUG_IDS, SEVERITIES, type BugId } from "@/lib/sandbox/novabank/bugs"
 import type { SandboxState } from "@/lib/sandbox/novabank/engine"
-import { PRIORITIES, STATUSES, TEST_TYPES, type WorkspaceState } from "@/lib/workspace/types"
+import { NOTE_KINDS, PRIORITIES, STATUSES, TEST_TYPES, TIMEBOXES, type WorkspaceState } from "@/lib/workspace/types"
 
 /**
  * What the server accepts from a client. The client owns the document (the app is local-first), so the server's
@@ -36,6 +36,7 @@ const bugSchema = z.object({
   title: text(300),
   severity: z.enum(SEVERITIES),
   caseId: id.nullable(),
+  sessionId: id.nullable().optional(),
   steps: z.array(text(1000)).max(40),
   expected: text(2000),
   actual: text(2000),
@@ -85,6 +86,22 @@ const planSchema = z.object({
   updatedAt: iso,
 })
 
+const sessionSchema = z.object({
+  id,
+  key: text(20),
+  projectSlug: text(64),
+  charter: text(1000),
+  requirementKey: text(20).nullable(),
+  timeboxMinutes: z.number().int().refine((n) => (TIMEBOXES as readonly number[]).includes(n), "Unknown time-box"),
+  status: z.enum(["planned", "running", "ended"]),
+  startedAt: iso.nullable(),
+  endedAt: iso.nullable(),
+  notes: z.array(z.object({ id, at: iso, kind: z.enum(NOTE_KINDS), text: text(2000) })).max(500),
+  summary: text(4000),
+  createdAt: iso,
+  updatedAt: iso,
+})
+
 export const workspaceSchema = z.object({
   v: z.literal(1),
   seq: z.number().int().min(0),
@@ -97,6 +114,8 @@ export const workspaceSchema = z.object({
   nextBugNumber: z.record(z.string().max(64), z.number().int().min(1)),
   // Documents saved before test plans existed have none
   plans: z.array(planSchema).max(20).default([]),
+  sessions: z.array(sessionSchema).max(200).default([]),
+  nextSessionNumber: z.record(z.string().max(64), z.number().int().min(1)).default({}),
 })
 
 const accountId = z.enum(["checking", "savings"])

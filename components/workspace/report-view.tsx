@@ -10,11 +10,13 @@ import { AssessmentSection } from "@/components/workspace/defects-section"
 import { ReportDocument } from "@/components/workspace/report-document"
 import { ShareButton } from "@/components/workspace/share-panel"
 import { useIsClient } from "@/hooks/use-is-client"
+import { useNow } from "@/hooks/use-now"
 import { useSandboxState } from "@/hooks/use-sandbox"
 import { useProject } from "@/hooks/use-workspace"
 import { evaluatePlan } from "@/lib/workspace/plan"
 import { buildReport } from "@/lib/workspace/report"
 import { assess } from "@/lib/workspace/scoring"
+import { sessionRows } from "@/lib/workspace/sessions"
 
 function Generated() {
   const isClient = useIsClient()
@@ -32,6 +34,10 @@ export function ReportView({ projectSlug }: { projectSlug: string }) {
     const plan = state.plans.find((p) => p.projectSlug === projectSlug)
     return plan && project ? evaluatePlan(plan, project, cases, bugs) : null
   }, [state.plans, projectSlug, project, cases, bugs])
+  const projectSessions = useMemo(() => state.sessions.filter((x) => x.projectSlug === projectSlug), [state.sessions, projectSlug])
+  // A session still running shows its time so far, so the clock ticks only then
+  const now = useNow(projectSessions.some((x) => x.status === "running"))
+  const sessions = useMemo(() => (project ? sessionRows(projectSessions, bugs, project, now) : []), [projectSessions, bugs, project, now])
   const defects = useMemo(
     () => bugs.map((b) => ({ key: b.key, title: b.title, severity: b.severity, caseKey: cases.find((c) => c.id === b.caseId)?.key ?? null })),
     [bugs, cases],
@@ -83,6 +89,7 @@ export function ReportView({ projectSlug }: { projectSlug: string }) {
           tester="Guest"
           defects={defects}
           plan={planEvaluation}
+          sessions={sessions}
           assessment={project?.slug === "novabank" ? <AssessmentSection assessment={assessment} bugs={bugs} /> : null}
         />
       )}

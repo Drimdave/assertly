@@ -274,8 +274,10 @@ test.describe("sharing a report", () => {
       await page.getByRole("button", { name: "Create link" }).click()
       const link = page.getByRole("list", { name: "Active share links" }).getByRole("link")
       await expect(link).toHaveCount(1)
+      // A toast or popover caught mid-fade is half transparent and fails contrast for a moment: wait for animations first
+      const settle = (p: Page) => p.evaluate(() => Promise.all(document.getAnimations().map((a) => a.finished.catch(() => null))))
       const scan = async (p: Page) =>
-        (await new AxeBuilder({ page: p }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"]).analyze()).violations.map((v) => `${v.id}: ${v.help}`)
+        (await settle(p), await new AxeBuilder({ page: p }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"]).analyze()).violations.map((v) => `${v.id}: ${v.help} :: ${v.nodes.map((n) => n.target.join(" ")).slice(0, 3).join(" ;; ")}`)
       expect(await scan(page)).toEqual([])
 
       const viewer = await browser.newContext({ colorScheme: scheme })
@@ -303,6 +305,29 @@ test.describe("sharing a report", () => {
     await expect(viewer.page.getByRole("heading", { name: "Test plan and exit criteria" })).toBeVisible()
     await expect(viewer.page.getByText(/Exit criteria not met: 3 of 5 satisfied\./)).toBeVisible()
     await expect(viewer.page.getByText("NovaBank Transfers test plan")).toBeVisible()
+    await viewer.context.close()
+  })
+
+  test("a shared report includes exploratory sessions", async ({ page, browser }) => {
+    await signUp(page, "Mary Jackson")
+    await page.goto("/app/novabank/sessions")
+    await page.getByRole("button", { name: "New session" }).first().click()
+    await page.getByRole("dialog").getByLabel("Charter").fill("Explore the transfer form with different amounts to discover what it accepts")
+    await page.getByRole("button", { name: "Create session" }).click()
+    await page.getByRole("button", { name: "Start session" }).click()
+    await page.getByRole("textbox", { name: "Note", exact: true }).fill("Spaces are accepted")
+    await page.keyboard.press("Enter")
+    await expect(page.getByRole("list", { name: /Notes, newest first/ })).toContainText("Spaces are accepted")
+    await page.goto("/app/novabank/report")
+    await page.getByRole("button", { name: "Share" }).click()
+    await page.getByRole("button", { name: "Create link" }).click()
+    const path = (await page.getByRole("list", { name: "Active share links" }).getByRole("link").getAttribute("href"))!
+
+    const viewer = await freshPage(browser)
+    await viewer.page.goto(path)
+    await expect(viewer.page.getByRole("heading", { name: "Exploratory sessions" })).toBeVisible()
+    await expect(viewer.page.locator('[data-session="ES-001"]')).toContainText("Explore the transfer form with different amounts")
+    await expect(viewer.page.locator('[data-session="ES-001"]')).toContainText("1 observation")
     await viewer.context.close()
   })
 

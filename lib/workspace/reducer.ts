@@ -1,4 +1,4 @@
-import type { ActivityEntry, BugInput, BugReport, CaseInput, PlanInput, TestPlan, Status, TestCase, WorkspaceState } from "./types"
+import type { ActivityEntry, BugInput, BugReport, CaseInput, ExploratorySession, NoteKind, PlanInput, SessionInput, TestPlan, Status, TestCase, WorkspaceState } from "./types"
 
 export type Action =
   | { type: "case/create"; at: string; projectSlug: string; input: CaseInput }
@@ -12,6 +12,14 @@ export type Action =
   | { type: "bug/delete"; id: string }
   /** Reveals the next hint for a seeded bug (max 2). Costs points when scored. */
   | { type: "hint/reveal"; bugId: string }
+  | { type: "session/create"; at: string; projectSlug: string; input: SessionInput }
+  | { type: "session/update"; at: string; id: string; patch: Partial<SessionInput & { summary: string }> }
+  | { type: "session/start"; at: string; id: string }
+  | { type: "session/end"; at: string; id: string }
+  /** Adds a note. Only a running session takes notes. */
+  | { type: "session/note"; at: string; id: string; kind: NoteKind; text: string }
+  | { type: "session/note-delete"; id: string; noteId: string }
+  | { type: "session/delete"; id: string }
   /** Creates the project's test plan, or replaces its contents. */
   | { type: "plan/save"; at: string; projectSlug: string; input: PlanInput }
 
@@ -174,6 +182,77 @@ export function reduce(state: WorkspaceState, action: Action): WorkspaceState {
       const used = state.hints[action.bugId] ?? 0
       if (used >= 2) return state
       return { ...state, hints: { ...state.hints, [action.bugId]: used + 1 } }
+    }
+
+    case "session/create": {
+      const number = state.nextSessionNumber[action.projectSlug] ?? 1
+      const created: ExploratorySession = {
+        id: `s${state.seq + 1}`,
+        key: `ES-${pad(number)}`,
+        projectSlug: action.projectSlug,
+        ...action.input,
+        status: "planned",
+        startedAt: null,
+        endedAt: null,
+        notes: [],
+        summary: "",
+        createdAt: action.at,
+        updatedAt: action.at,
+      }
+      return {
+        ...state,
+        seq: state.seq + 1,
+        sessions: [...state.sessions, created],
+        nextSessionNumber: { ...state.nextSessionNumber, [action.projectSlug]: number + 1 },
+      }
+    }
+
+    case "session/update": {
+      const current = state.sessions.find((x) => x.id === action.id)
+      if (!current) return state
+      const changed = (Object.keys(action.patch) as (keyof typeof action.patch)[]).some((f) => !sameJson(action.patch[f], current[f]))
+      if (!changed) return state
+      return { ...state, sessions: state.sessions.map((x) => (x.id === current.id ? { ...current, ...action.patch, updatedAt: action.at } : x)) }
+    }
+
+    case "session/start": {
+      const current = state.sessions.find((x) => x.id === action.id)
+      if (!current || current.status !== "planned") return state
+      return { ...state, sessions: state.sessions.map((x) => (x.id === current.id ? { ...current, status: "running", startedAt: action.at, updatedAt: action.at } : x)) }
+    }
+
+    case "session/end": {
+      const current = state.sessions.find((x) => x.id === action.id)
+      if (!current || current.status !== "running") return state
+      return { ...state, sessions: state.sessions.map((x) => (x.id === current.id ? { ...current, status: "ended", endedAt: action.at, updatedAt: action.at } : x)) }
+    }
+
+    case "session/note": {
+      const current = state.sessions.find((x) => x.id === action.id)
+      const text = action.text.trim()
+      if (!current || current.status !== "running" || !text) return state
+      const note = { id: `n${state.seq + 1}`, at: action.at, kind: action.kind, text }
+      return {
+        ...state,
+        seq: state.seq + 1,
+        sessions: state.sessions.map((x) => (x.id === current.id ? { ...current, notes: [...current.notes, note], updatedAt: action.at } : x)),
+      }
+    }
+
+    case "session/note-delete": {
+      const current = state.sessions.find((x) => x.id === action.id)
+      if (!current || !current.notes.some((n) => n.id === action.noteId)) return state
+      return { ...state, sessions: state.sessions.map((x) => (x.id === current.id ? { ...current, notes: current.notes.filter((n) => n.id !== action.noteId) } : x)) }
+    }
+
+    case "session/delete": {
+      if (!state.sessions.some((x) => x.id === action.id)) return state
+      return {
+        ...state,
+        sessions: state.sessions.filter((x) => x.id !== action.id),
+        // A bug found in a deleted session stays; it just no longer points anywhere
+        bugs: state.bugs.map((b) => (b.sessionId === action.id ? { ...b, sessionId: null } : b)),
+      }
     }
   }
 }

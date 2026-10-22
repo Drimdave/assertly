@@ -29,14 +29,24 @@ export function BugsView({ projectSlug }: { projectSlug: string }) {
   const keyOf = (id: string | null) => cases.find((c) => c.id === id)?.key
 
   // /bugs?case=<id> opens a new report prefilled from that test case, until the tester closes it
+  // /bugs?session=<id> does the same for a bug found during an exploratory session
   const caseParam = params.get("case")
+  const sessionParam = params.get("session")
+  const param = caseParam ?? sessionParam
   const [closedParam, setClosedParam] = useState<string | null>(null)
-  const fromCase = ready && caseParam && caseParam !== closedParam ? cases.find((c) => c.id === caseParam) : undefined
-  const active: BugTarget | null = target ?? (fromCase ? { kind: "new", prefill: bugFormFromCase(fromCase, detectEnvironment()) } : null)
+  const open = ready && param && param !== closedParam
+  const fromCase = open && caseParam ? cases.find((c) => c.id === caseParam) : undefined
+  const fromSession = open && !caseParam && sessionParam ? state.sessions.find((x) => x.id === sessionParam) : undefined
+  const prefill = fromCase
+    ? bugFormFromCase(fromCase, detectEnvironment())
+    : fromSession
+      ? { ...emptyBugForm(detectEnvironment()), sessionId: fromSession.id }
+      : null
+  const active: BugTarget | null = target ?? (prefill ? { kind: "new", prefill } : null)
   const close = () => {
     setTarget(null)
-    if (caseParam) {
-      setClosedParam(caseParam)
+    if (param) {
+      setClosedParam(param)
       router.replace(`/app/${projectSlug}/bugs`, { scroll: false })
     }
   }
@@ -143,7 +153,7 @@ export function BugsView({ projectSlug }: { projectSlug: string }) {
         </Table>
       </div>
 
-      {project && <BugDrawer target={active} project={project} bugs={bugs} cases={cases} onClose={close} />}
+      {project && <BugDrawer target={active} project={project} bugs={bugs} cases={cases} sessions={state.sessions.filter((x) => x.projectSlug === projectSlug)} onClose={close} />}
     </div>
   )
 }

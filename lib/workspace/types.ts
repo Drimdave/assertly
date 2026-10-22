@@ -73,6 +73,8 @@ export interface BugReport {
   severity: Severity
   /** The test case this defect was found by, if any. */
   caseId: string | null
+  /** The exploratory session this defect was found in, if any. Absent on reports saved before sessions existed. */
+  sessionId?: string | null
   steps: string[]
   expected: string
   actual: string
@@ -84,7 +86,7 @@ export interface BugReport {
 /** Editable fields of a bug report. */
 export type BugInput = Omit<BugReport, "id" | "key" | "projectSlug" | "createdAt" | "updatedAt">
 
-export const TEST_TYPES = ["functional", "negative", "boundary", "security", "usability", "accessibility", "regression"] as const
+export const TEST_TYPES = ["functional", "negative", "boundary", "security", "usability", "accessibility", "regression", "exploratory"] as const
 export type TestType = (typeof TEST_TYPES)[number]
 
 export const TEST_TYPE_LABEL: Record<TestType, string> = {
@@ -95,6 +97,7 @@ export const TEST_TYPE_LABEL: Record<TestType, string> = {
   usability: "Usability",
   accessibility: "Accessibility",
   regression: "Regression",
+  exploratory: "Exploratory",
 }
 
 /** Measurable conditions that decide whether testing may stop. The test summary checks them against real results. */
@@ -136,6 +139,54 @@ export interface TestPlan {
 /** Editable fields of a test plan. */
 export type PlanInput = Omit<TestPlan, "id" | "projectSlug" | "createdAt" | "updatedAt">
 
+export const NOTE_KINDS = ["note", "question", "risk", "idea"] as const
+export type NoteKind = (typeof NOTE_KINDS)[number]
+
+export const NOTE_KIND_LABEL: Record<NoteKind, string> = {
+  note: "Observation",
+  question: "Question",
+  risk: "Risk",
+  idea: "Test idea",
+}
+
+export const TIMEBOXES = [15, 30, 45, 60, 90] as const
+export type SessionStatus = "planned" | "running" | "ended"
+export const SESSION_STATUS_LABEL: Record<SessionStatus, string> = { planned: "Planned", running: "Running", ended: "Ended" }
+
+export interface SessionNote {
+  id: string
+  at: string
+  kind: NoteKind
+  text: string
+}
+
+/** A time-boxed exploratory testing session: a charter to follow, notes taken as you go, and a debrief. */
+export interface ExploratorySession {
+  id: string
+  /** Human key, e.g. ES-002. Unique within a project. */
+  key: string
+  projectSlug: string
+  /** What to explore, how, and what to learn: "Explore X with Y to discover Z". */
+  charter: string
+  requirementKey: string | null
+  timeboxMinutes: number
+  status: SessionStatus
+  startedAt: string | null
+  endedAt: string | null
+  notes: SessionNote[]
+  /** The debrief: what was covered, what was found, what is left. */
+  summary: string
+  createdAt: string
+  updatedAt: string
+}
+
+/** Editable fields when planning a session. */
+export interface SessionInput {
+  charter: string
+  requirementKey: string | null
+  timeboxMinutes: number
+}
+
 export interface WorkspaceState {
   v: 1
   /** Monotonic counter used to mint ids, so the reducer stays pure and deterministic. */
@@ -151,6 +202,9 @@ export interface WorkspaceState {
   /** project slug -> next BUG number */
   nextBugNumber: Record<string, number>
   plans: TestPlan[]
+  sessions: ExploratorySession[]
+  /** project slug -> next ES number */
+  nextSessionNumber: Record<string, number>
 }
 
 /** Editable fields of a test case. */

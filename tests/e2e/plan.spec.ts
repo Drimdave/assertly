@@ -57,7 +57,7 @@ test.describe("test plan", () => {
     for (const key of ["REQ-01", "REQ-02", "REQ-03", "REQ-04", "REQ-05"]) {
       await page.getByRole("checkbox", { name: new RegExp(key) }).uncheck()
     }
-    for (const type of ["Functional", "Negative and validation", "Boundary values", "Security"]) {
+    for (const type of ["Functional", "Negative and validation", "Boundary values", "Security", "Exploratory"]) {
       await page.getByRole("button", { name: type }).click()
     }
     await page.getByLabel("Executed").first().fill("150")

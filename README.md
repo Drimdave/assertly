@@ -2,13 +2,14 @@
 
 A hands-on QA practice platform. Testers work the whole job (requirement, test plan, test cases, execution, bug reports, test summary) against realistic systems that contain hidden, seeded bugs, and get scored on what they find.
 
-> **Status: Phase 4 in progress.** The workspace, the NovaBank sandbox with scored hidden defects, accounts, saving and share links work today. The test plan editor works; exploratory sessions and more scenarios are next, see [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+> **Status: Phase 4 in progress.** The workspace, the NovaBank sandbox with scored hidden defects, accounts, saving and share links work today. The test plan editor and exploratory sessions work; a second practice system is next, see [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 ## What works today
 
 - **App shell:** sidebar, top bar, light and dark themes, responsive down to phone width.
 - **Fundamentals track** (`/learn`): 12 challenges where you discover every validation behavior. Progress is saved in your browser, no sign-up.
 - **Test plan** (`/app/novabank/plan`): scope, approach, types of testing, entry criteria, risks and measurable exit criteria (execution percentage, pass rate, limits on critical and high bugs, requirement coverage). Start from a template. The test summary then checks your real results against the plan's exit criteria.
+- **Exploratory sessions** (`/app/novabank/sessions`): time-boxed, charter-led testing. Plan a session (charter, area, 15 to 90 minute time-box), start the clock, take timestamped notes (observation, question, risk, test idea) with the keyboard, report bugs from it, and write a debrief. The timer warns when time is nearly up and when the time-box is reached. Sessions appear in the test summary.
 - **Test cases** (`/app/novabank/cases`): a sample banking project you can edit. Search, filter, sort, bulk actions, and a drawer to write test cases with steps and expected results. Keyboard friendly: `J`/`K` move, `Enter` open, `P`/`F`/`B` pass, fail or block, `X` select, `C` new, `/` search. Every change has an Undo.
 - **Board** (`/app/novabank/board`): the same test cases as columns by status. Drag a card to change its status or reorder it, with the mouse, touch or keyboard (`Space` to pick up, arrows to move, `Space` to drop, `Esc` to cancel). Every move has an Undo.
 - **Test summary** (`/app/novabank/report`): a live report built from your results: a verdict (ready, incomplete, not ready), execution results, a requirement coverage matrix, failed test cases, risks and recommended next steps. Print it or save it as a PDF (always light, with the app chrome hidden).

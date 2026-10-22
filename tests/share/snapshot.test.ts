@@ -74,6 +74,22 @@ describe("share snapshot", () => {
     expect(snap.plan?.criteria.find((c) => c.id === "critical")?.met).toBe(false)
   })
 
+  it("includes the project's exploratory sessions with time spent, notes and bugs", () => {
+    const { workspace, sandbox } = withFoundNegativeAmount()
+    const T = NOW.toISOString()
+    const minutes = (n: number) => new Date(NOW.getTime() + n * 60_000).toISOString()
+    let w = reduce(workspace, { type: "session/create", at: T, projectSlug: "novabank", input: { charter: "Explore the transfer form with odd amounts to discover what it accepts", requirementKey: "REQ-02", timeboxMinutes: 30 } })
+    const id = w.sessions[0].id
+    w = reduce(w, { type: "session/start", at: T, id })
+    w = reduce(w, { type: "session/note", at: minutes(3), id, kind: "question", text: "Max amount?" })
+    w = reduce(w, { type: "session/end", at: minutes(25), id })
+    w = reduce(w, { type: "session/update", at: minutes(26), id, patch: { summary: "Done" } })
+    const snap = buildShareSnapshot({ workspace: w, sandbox, projectSlug: "novabank", tester: "Ada", now: new Date(minutes(60)) })!
+    expect(snap.sessions).toEqual([
+      expect.objectContaining({ key: "ES-001", status: "ended", spentMinutes: 25, timeboxMinutes: 30, questions: 1, bugs: 0, summary: "Done", area: "REQ-02 Funds transfer" }),
+    ])
+  })
+
   it("survives a JSON round trip (it is stored as JSON)", () => {
     const { workspace, sandbox } = withFoundNegativeAmount()
     const snap = buildShareSnapshot({ workspace, sandbox, projectSlug: "novabank", tester: "Ada", now: NOW })!

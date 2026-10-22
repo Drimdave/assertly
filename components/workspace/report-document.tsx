@@ -3,10 +3,12 @@ import { MetricStrip } from "@/components/ui/metric-strip"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { DefectsTable, type DefectRow } from "@/components/workspace/defects-section"
 import { PlanSummary } from "@/components/workspace/plan-section"
+import { SessionsSummary } from "@/components/workspace/sessions-summary"
 import { PriorityLabel } from "@/components/workspace/priority-label"
 import { StatusLozenge } from "@/components/workspace/status-lozenge"
 import { cn } from "@/lib/utils"
 import type { PlanEvaluation } from "@/lib/workspace/plan"
+import type { SessionRow } from "@/lib/workspace/sessions"
 import type { CoverageState, TestReport, VerdictLevel } from "@/lib/workspace/report"
 import { STATUSES, STATUS_LABEL, type Status } from "@/lib/workspace/types"
 
@@ -63,12 +65,14 @@ export function ReportDocument({
   defects,
   assessment,
   plan = null,
+  sessions = [],
 }: {
   report: TestReport
   tester: string
   defects: DefectRow[]
   assessment: React.ReactNode | null
   plan?: PlanEvaluation | null
+  sessions?: SessionRow[]
 }) {
   const t = report.totals
   // Sections are numbered as they render, so optional ones (the plan, the assessment) never leave a gap
@@ -220,6 +224,12 @@ export function ReportDocument({
         </div>
       )}
     </Section>
+
+    {sessions.length > 0 && (
+      <Section index={next()} title="Exploratory sessions">
+        <SessionsSummary rows={sessions} />
+      </Section>
+    )}
 
     <Section index={next()} title="Defects">
       <DefectsTable rows={defects} />

@@ -6,12 +6,14 @@ import type { WorkspaceState } from "./types"
  * is added to WorkspaceState; never remove one.
  */
 export function migrateWorkspace(v: WorkspaceState): WorkspaceState {
-  if (v.bugs && v.hints && v.nextBugNumber && v.plans) return v
+  if (v.bugs && v.hints && v.nextBugNumber && v.plans && v.sessions && v.nextSessionNumber) return v
   return {
     ...v,
     bugs: v.bugs ?? [],
     hints: v.hints ?? {},
     nextBugNumber: v.nextBugNumber ?? {},
     plans: v.plans ?? [],
+    sessions: v.sessions ?? [],
+    nextSessionNumber: v.nextSessionNumber ?? {},
   }
 }

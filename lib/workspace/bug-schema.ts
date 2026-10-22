@@ -8,6 +8,8 @@ export const bugFormSchema = z.object({
   severity: z.enum(SEVERITIES),
   /** "" means not linked to a test case. */
   caseId: z.string(),
+  /** "" means not found in an exploratory session. */
+  sessionId: z.string(),
   steps: z
     .array(z.object({ text: z.string().trim().min(1, "Describe this step") }))
     .min(1, "Add at least one step to reproduce it")
@@ -30,6 +32,7 @@ export const emptyBugForm = (environment = ""): BugFormValues => ({
   title: "",
   severity: "medium",
   caseId: "",
+  sessionId: "",
   steps: [{ text: "" }],
   expected: "",
   actual: "",
@@ -57,6 +60,7 @@ export function toBugFormValues(b: BugReport): BugFormValues {
     title: b.title,
     severity: b.severity,
     caseId: b.caseId ?? "",
+    sessionId: b.sessionId ?? "",
     steps: b.steps.length > 0 ? b.steps.map((text) => ({ text })) : [{ text: "" }],
     expected: b.expected,
     actual: b.actual,
@@ -69,6 +73,7 @@ export function toBugInput(v: BugFormValues): BugInput {
     title: v.title.trim(),
     severity: v.severity,
     caseId: v.caseId || null,
+    sessionId: v.sessionId || null,
     steps: v.steps.map((s) => s.text.trim()).filter(Boolean),
     expected: v.expected.trim(),
     actual: v.actual.trim(),

@@ -1,7 +1,7 @@
 import { migrateWorkspace } from "./migrate"
 import { reduce, type Action } from "./reducer"
 import { createSeedState, EMPTY_STATE } from "./seed"
-import type { BugInput, BugReport, CaseInput, PlanInput, Status, TestCase, WorkspaceState } from "./types"
+import type { BugInput, BugReport, CaseInput, ExploratorySession, NoteKind, PlanInput, SessionInput, Status, TestCase, WorkspaceState } from "./types"
 
 /**
  * Browser-local workspace store for guests (Phase 1). It is the only module that touches storage, so
@@ -109,6 +109,16 @@ export const workspace = {
   updateBug: (id: string, patch: Partial<BugInput>) => dispatch({ type: "bug/update", at: now(), id, patch }),
   deleteBug: (id: string) => dispatch({ type: "bug/delete", id }),
   revealHint: (bugId: string) => dispatch({ type: "hint/reveal", bugId }),
+  createSession(projectSlug: string, input: SessionInput): ExploratorySession {
+    dispatch({ type: "session/create", at: now(), projectSlug, input })
+    return state.sessions[state.sessions.length - 1]
+  },
+  updateSession: (id: string, patch: Partial<SessionInput & { summary: string }>) => dispatch({ type: "session/update", at: now(), id, patch }),
+  startSession: (id: string) => dispatch({ type: "session/start", at: now(), id }),
+  endSession: (id: string) => dispatch({ type: "session/end", at: now(), id }),
+  addNote: (id: string, kind: NoteKind, text: string) => dispatch({ type: "session/note", at: now(), id, kind, text }),
+  deleteNote: (id: string, noteId: string) => dispatch({ type: "session/note-delete", id, noteId }),
+  deleteSession: (id: string) => dispatch({ type: "session/delete", id }),
   savePlan: (projectSlug: string, input: PlanInput) => dispatch({ type: "plan/save", at: now(), projectSlug, input }),
 
   undo(): boolean {

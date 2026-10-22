@@ -7,6 +7,7 @@ const PAGES = [
   { name: "a challenge", path: "/learn/email" },
   { name: "requirements", path: "/app/novabank/requirements" },
   { name: "test plan (empty)", path: "/app/novabank/plan" },
+  { name: "sessions (empty)", path: "/app/novabank/sessions" },
   { name: "test cases", path: "/app/novabank/cases" },
   { name: "bugs", path: "/app/novabank/bugs" },
   { name: "NovaBank sign in", path: "/sandbox/novabank" },
@@ -17,6 +18,8 @@ const PAGES = [
 ]
 
 async function scan(page: Page) {
+  // An element caught mid-fade is half transparent and fails contrast for a moment: let animations finish first
+  await page.evaluate(() => Promise.all(document.getAnimations().map((a) => a.finished.catch(() => null))))
   const results = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"]).analyze()
   // Print readable output if something fails
   return results.violations.map((v) => `${v.id} (${v.impact}): ${v.help}\n  ${v.nodes.map((n) => n.target.join(" ")).slice(0, 4).join("\n  ")}`)
@@ -51,6 +54,46 @@ for (const scheme of ["light", "dark"] as const) {
       await expect(page.getByLabel("Title")).toBeVisible()
       await page.goto("/app/novabank/report")
       await expect(page.getByRole("heading", { name: "Test plan and exit criteria" })).toBeVisible()
+      expect(await scan(page)).toEqual([])
+    })
+
+    test("the new session drawer, with an error showing, has no violations", async ({ page }) => {
+      await page.goto("/app/novabank/sessions")
+      await page.getByRole("button", { name: "New session" }).first().click()
+      await page.getByRole("dialog").getByLabel("Charter").fill("short")
+      await page.getByRole("button", { name: "Create session" }).click()
+      await expect(page.getByText(/Write a charter/).first()).toBeVisible()
+      expect(await scan(page)).toEqual([])
+    })
+
+    test("a session page has no violations while planned, running and ended", async ({ page }) => {
+      await page.goto("/app/novabank/sessions")
+      await page.getByRole("button", { name: "New session" }).first().click()
+      await page.getByRole("dialog").getByLabel("Charter").fill("Explore the transfer form with different amounts to discover what it accepts")
+      await page.getByRole("button", { name: "Create session" }).click()
+      await expect(page.getByRole("timer")).toBeVisible()
+      expect(await scan(page)).toEqual([]) // planned
+
+      await page.getByRole("button", { name: "Start session" }).click()
+      await page.getByRole("textbox", { name: "Note", exact: true }).fill("An observation")
+      await page.keyboard.press("Enter")
+      await expect(page.getByRole("list", { name: /Notes, newest first/ })).toBeVisible()
+      expect(await scan(page)).toEqual([]) // running, with a note
+
+      await page.getByRole("button", { name: "End session" }).click()
+      await page.getByRole("alertdialog").getByRole("button", { name: "End session" }).click()
+      await expect(page.getByRole("textbox", { name: "Debrief text" })).toBeVisible()
+      expect(await scan(page)).toEqual([]) // ended, with debrief and findings
+    })
+
+    test("the summary with an exploratory session has no violations", async ({ page }) => {
+      await page.goto("/app/novabank/sessions")
+      await page.getByRole("button", { name: "New session" }).first().click()
+      await page.getByRole("dialog").getByLabel("Charter").fill("Explore the transfer form with different amounts to discover what it accepts")
+      await page.getByRole("button", { name: "Create session" }).click()
+      await page.getByRole("button", { name: "Start session" }).click()
+      await page.goto("/app/novabank/report")
+      await expect(page.getByRole("heading", { name: "Exploratory sessions" })).toBeVisible()
       expect(await scan(page)).toEqual([])
     })
 

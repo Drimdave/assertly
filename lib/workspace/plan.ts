@@ -13,7 +13,7 @@ export function planTemplate(project: Project): PlanInput {
     outOfScope: "Performance and load testing, and anything outside the requirements listed above.",
     approach:
       "Derive test cases from each requirement's acceptance criteria. Run high priority cases first. Include negative and boundary cases for every input. Report every failure as a bug with steps to reproduce.",
-    testTypes: ["functional", "negative", "boundary", "security"],
+    testTypes: ["functional", "negative", "boundary", "security", "exploratory"],
     environment: novabank ? "NovaBank sandbox build 2.4.1, latest Chrome, test data only." : "",
     entryCriteria: [
       "Requirements are reviewed and agreed",

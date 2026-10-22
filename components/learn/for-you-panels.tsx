@@ -15,7 +15,7 @@ import { executionSummary, statusCounts } from "@/lib/workspace/selectors"
 import { STATUSES, type Status } from "@/lib/workspace/types"
 
 const COMING_NEXT = [
-  { title: "Exploratory sessions", body: "Time-boxed sessions with a charter and notes, tied to the bugs they find." },
+  { title: "Requirement traceability", body: "A matrix tying every requirement to its test cases, sessions and bugs." },
   { title: "More systems to test", body: "Further practice systems with their own hidden defects, beyond NovaBank." },
 ]
 
@@ -74,6 +74,7 @@ function TestRunPanel() {
           { href: `/app/${DEFAULT_PROJECT_SLUG}/requirements`, label: "Read the requirements" },
           { href: `/app/${DEFAULT_PROJECT_SLUG}/plan`, label: "Write the test plan" },
           { href: `/app/${DEFAULT_PROJECT_SLUG}/cases`, label: "Open test cases" },
+          { href: `/app/${DEFAULT_PROJECT_SLUG}/sessions`, label: "Explore in a session" },
           { href: `/app/${DEFAULT_PROJECT_SLUG}/bugs`, label: "Review bugs" },
         ].map((l) => (
           <Link key={l.href} href={l.href} className="flex items-center gap-2 rounded-md border px-3 py-2 text-sm transition-colors hover:bg-accent">
