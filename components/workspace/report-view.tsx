@@ -11,7 +11,8 @@ import { ReportDocument } from "@/components/workspace/report-document"
 import { ShareButton } from "@/components/workspace/share-panel"
 import { useIsClient } from "@/hooks/use-is-client"
 import { useNow } from "@/hooks/use-now"
-import { useSandboxState } from "@/hooks/use-sandbox"
+import { useHits } from "@/lib/sandbox/stores"
+import { getSystem } from "@/lib/systems/registry"
 import { useProject } from "@/hooks/use-workspace"
 import { markSeen } from "@/lib/onboarding/flags"
 import { evaluatePlan } from "@/lib/workspace/plan"
@@ -32,9 +33,10 @@ export function ReportView({ projectSlug }: { projectSlug: string }) {
     if (found) markSeen("report")
   }, [found])
   const report = useMemo(() => (project ? buildReport(project, cases) : null), [project, cases])
-  const sandbox = useSandboxState()
+  const system = getSystem(projectSlug)
+  const hits = useHits(projectSlug)
   const bugs = useMemo(() => state.bugs.filter((b) => b.projectSlug === projectSlug), [state.bugs, projectSlug])
-  const assessment = useMemo(() => assess(bugs, cases, sandbox.hits, state.hints), [bugs, cases, sandbox.hits, state.hints])
+  const assessment = useMemo(() => (system ? assess(bugs, cases, hits, state.hints, system.bugs) : null), [system, bugs, cases, hits, state.hints])
   const planEvaluation = useMemo(() => {
     const plan = state.plans.find((p) => p.projectSlug === projectSlug)
     return plan && project ? evaluatePlan(plan, project, cases, bugs) : null
@@ -95,7 +97,7 @@ export function ReportView({ projectSlug }: { projectSlug: string }) {
           defects={defects}
           plan={planEvaluation}
           sessions={sessions}
-          assessment={project?.slug === "novabank" ? <AssessmentSection assessment={assessment} bugs={bugs} /> : null}
+          assessment={assessment ? <AssessmentSection assessment={assessment} bugs={bugs} /> : null}
         />
       )}
     </div>

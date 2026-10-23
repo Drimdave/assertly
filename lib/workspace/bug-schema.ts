@@ -1,6 +1,6 @@
 import { z } from "zod"
 
-import { SEVERITIES } from "@/lib/sandbox/novabank/bugs"
+import { SEVERITIES } from "@/lib/sandbox/types"
 import type { BugInput, BugReport, TestCase } from "./types"
 
 export const bugFormSchema = z.object({
@@ -22,10 +22,10 @@ export const bugFormSchema = z.object({
 export type BugFormValues = z.infer<typeof bugFormSchema>
 
 /** A short description of the tester's browser, for the Environment field. Browser only. */
-export function detectEnvironment(): string {
+export function detectEnvironment(build: string): string {
   const ua = typeof navigator === "undefined" ? "" : navigator.userAgent
   const browser = /Edg\//.test(ua) ? "Edge" : /Firefox\//.test(ua) ? "Firefox" : /Chrome\//.test(ua) ? "Chrome" : /Safari\//.test(ua) ? "Safari" : "Browser"
-  return `NovaBank sandbox 2.4.1, ${browser}`
+  return `${build}, ${browser}`
 }
 
 export const emptyBugForm = (environment = ""): BugFormValues => ({

@@ -1,12 +1,5 @@
 import { NOTE_KINDS, type BugReport, type ExploratorySession, type NoteKind, type Project } from "./types"
 
-/** Charter starters that teach the shape without pointing at where any defect is. */
-export const CHARTER_EXAMPLES = [
-  "Explore the Activity page after different transfers to discover how history is recorded and shown",
-  "Explore the sign-in page with unusual input to discover how errors are explained",
-  "Explore the transfer form with different amounts to discover what it accepts",
-]
-
 export const CHARTER_PLACEHOLDER = "Explore [an area] with [an approach] to discover [what you want to learn]"
 
 const ms = (iso: string) => new Date(iso).getTime()

@@ -10,7 +10,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/components/ui/sheet"
 import { Textarea } from "@/components/ui/textarea"
 import { cn } from "@/lib/utils"
-import { CHARTER_EXAMPLES, CHARTER_PLACEHOLDER } from "@/lib/workspace/sessions"
+import { getSystem } from "@/lib/systems/registry"
+import { CHARTER_PLACEHOLDER } from "@/lib/workspace/sessions"
 import { EMPTY_SESSION_FORM, sessionFormSchema, toSessionInput, type SessionFormValues } from "@/lib/workspace/session-schema"
 import { workspace } from "@/lib/workspace/store"
 import { TIMEBOXES, type Project } from "@/lib/workspace/types"
@@ -62,7 +63,7 @@ function NewSessionForm({ project, onClose }: { project: Project; onClose: () =>
           <div className="space-y-1 pt-1">
             <p className="text-xs font-medium text-muted-foreground">Or start from an example</p>
             <ul className="space-y-1">
-              {CHARTER_EXAMPLES.map((example) => (
+              {(getSystem(project.slug)?.charterExamples ?? []).map((example) => (
                 <li key={example}>
                   <button type="button" className="text-left text-sm text-primary underline underline-offset-2" onClick={() => setValue("charter", example, { shouldValidate: true })}>
                     {example}

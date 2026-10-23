@@ -12,11 +12,13 @@ import { BugDrawer, type BugTarget } from "@/components/workspace/bug-drawer"
 import { RelativeTime } from "@/components/workspace/relative-time"
 import { SeverityLozenge } from "@/components/workspace/severity-lozenge"
 import { useProject } from "@/hooks/use-workspace"
-import { SEVERITIES } from "@/lib/sandbox/novabank/bugs"
+import { getSystem } from "@/lib/systems/registry"
+import { SEVERITIES } from "@/lib/sandbox/types"
 import { bugFormFromCase, detectEnvironment, emptyBugForm } from "@/lib/workspace/bug-schema"
 
 export function BugsView({ projectSlug }: { projectSlug: string }) {
   const { ready, project, cases, state } = useProject(projectSlug)
+  const system = getSystem(projectSlug)
   const router = useRouter()
   const params = useSearchParams()
   const [target, setTarget] = useState<BugTarget | null>(null)
@@ -38,9 +40,9 @@ export function BugsView({ projectSlug }: { projectSlug: string }) {
   const fromCase = open && caseParam ? cases.find((c) => c.id === caseParam) : undefined
   const fromSession = open && !caseParam && sessionParam ? state.sessions.find((x) => x.id === sessionParam) : undefined
   const prefill = fromCase
-    ? bugFormFromCase(fromCase, detectEnvironment())
+    ? bugFormFromCase(fromCase, detectEnvironment(system?.build ?? ""))
     : fromSession
-      ? { ...emptyBugForm(detectEnvironment()), sessionId: fromSession.id }
+      ? { ...emptyBugForm(detectEnvironment(system?.build ?? "")), sessionId: fromSession.id }
       : null
   const active: BugTarget | null = target ?? (prefill ? { kind: "new", prefill } : null)
   const close = () => {
@@ -51,7 +53,7 @@ export function BugsView({ projectSlug }: { projectSlug: string }) {
     }
   }
 
-  const report = () => setTarget({ kind: "new", prefill: emptyBugForm(detectEnvironment()) })
+  const report = () => setTarget({ kind: "new", prefill: emptyBugForm(detectEnvironment(system?.build ?? "")) })
 
   if (ready && !project) {
     return (
@@ -110,11 +112,11 @@ export function BugsView({ projectSlug }: { projectSlug: string }) {
                   <div className="space-y-2">
                     <p className="font-medium">No bugs reported yet</p>
                     <p className="text-sm text-muted-foreground">
-                      Test NovaBank, and when something does not match the requirements, report it here.
+                      Test {system?.name ?? "the system"}, and when something does not match the requirements, report it here.
                     </p>
                     <div className="flex justify-center gap-2 pt-1">
                       <Button size="sm" asChild>
-                        <Link href="/sandbox/novabank">Open NovaBank</Link>
+                        <Link href={system?.sandboxPath ?? "/app"}>Open {system?.name ?? "the app"}</Link>
                       </Button>
                       <Button size="sm" variant="outline" onClick={report}>
                         Report a bug

@@ -1,5 +1,5 @@
-import type { Severity } from "@/lib/sandbox/novabank/bugs"
-import type { SandboxState } from "@/lib/sandbox/novabank/engine"
+import { getSystem } from "@/lib/systems/registry"
+import type { BugHit, Severity } from "@/lib/sandbox/types"
 import { evaluatePlan, type PlanEvaluation } from "@/lib/workspace/plan"
 import { buildReport, type TestReport } from "@/lib/workspace/report"
 import { sessionRows, type SessionRow } from "@/lib/workspace/sessions"
@@ -69,13 +69,15 @@ export function toPublicAssessment(a: Assessment, bugs: BugReport[]): PublicAsse
 
 export function buildShareSnapshot(opts: {
   workspace: WorkspaceState
-  sandbox: SandboxState
+  /** Saved state of each practice app, keyed by system slug; only the hit log is read. */
+  sandboxes: Record<string, { hits: BugHit[] } | undefined>
   projectSlug: string
   tester: string
   now: Date
 }): ShareSnapshot | null {
-  const { workspace, sandbox, projectSlug, tester, now } = opts
+  const { workspace, sandboxes, projectSlug, tester, now } = opts
   const project = workspace.projects.find((p) => p.slug === projectSlug)
+  const system = getSystem(projectSlug)
   if (!project) return null
   const cases = workspace.cases.filter((c) => c.projectSlug === projectSlug)
   const bugs = workspace.bugs.filter((b) => b.projectSlug === projectSlug)
@@ -92,6 +94,6 @@ export function buildShareSnapshot(opts: {
       const plan = workspace.plans.find((p) => p.projectSlug === projectSlug)
       return plan ? evaluatePlan(plan, project, cases, bugs) : null
     })(),
-    assessment: projectSlug === "novabank" ? toPublicAssessment(assess(bugs, cases, sandbox.hits, workspace.hints), bugs) : null,
+    assessment: system ? toPublicAssessment(assess(bugs, cases, sandboxes[projectSlug]?.hits ?? [], workspace.hints, system.bugs), bugs) : null,
   }
 }

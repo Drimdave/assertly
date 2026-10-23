@@ -4,11 +4,10 @@ import { useSyncExternalStore } from "react"
 
 import { canonical } from "./canonical"
 import { migrateWorkspace } from "@/lib/workspace/migrate"
-import { getSnapshot as getSandbox, subscribe as subscribeSandbox } from "@/lib/sandbox/novabank/store"
-import type { SandboxState } from "@/lib/sandbox/novabank/engine"
+import { normalizeSandboxes } from "@/lib/sandbox/normalize"
+import { allSandboxes, replaceSandboxes, subscribeAllSandboxes } from "@/lib/sandbox/stores"
 import { getSnapshot as getWorkspace, subscribe as subscribeWorkspace } from "@/lib/workspace/store"
 import { workspace } from "@/lib/workspace/store"
-import { sandbox } from "@/lib/sandbox/novabank/store"
 import type { WorkspaceState } from "@/lib/workspace/types"
 
 /**
@@ -34,6 +33,12 @@ interface Meta {
   userId: string
   rev: number
   dirty: boolean
+  /**
+   * Saves this browser has started since it last heard a reply. A page that is closed or replaced right after sending
+   * one never sees the answer, so the server can be ahead of `rev` because of this browser's own save. Knowing how many
+   * could have landed tells that apart from another device having saved.
+   */
+  sent?: number
 }
 function readMeta(): Meta | null {
   try {
@@ -76,7 +81,8 @@ export function useSyncState(): SyncState {
 interface RemoteDoc {
   rev: number
   workspace?: WorkspaceState
-  sandbox?: SandboxState
+  /** Per system ({ novabank: ... }); documents saved before there were several systems hold NovaBank on its own. */
+  sandbox?: unknown
 }
 
 let rev = 0
@@ -89,7 +95,13 @@ let notify: (message: string) => void = () => {}
 // Bumped by stopSync, so a start that is still loading (React strict mode runs effects twice in dev) gives up
 let generation = 0
 
-const serialize = () => canonical({ w: getWorkspace(), s: getSandbox() })
+const serialize = () => canonical({ w: getWorkspace(), s: allSandboxes() })
+
+/**
+ * A server copy in the form it takes once loaded here, for comparing with this browser's. Systems the saved copy has
+ * never heard of keep their fresh local state, so adding a system does not make every saved copy look "different".
+ */
+const remoteForm = (doc: RemoteDoc) => canonical({ w: doc.workspace ? migrateWorkspace(doc.workspace) : doc.workspace, s: { ...allSandboxes(), ...normalizeSandboxes(doc.sandbox) } })
 
 async function api(method: "GET" | "PUT", body?: unknown, keepalive = false) {
   const res = await fetch("/api/workspace", {
@@ -104,7 +116,7 @@ async function api(method: "GET" | "PUT", body?: unknown, keepalive = false) {
 function adopt(doc: RemoteDoc) {
   // A copy saved by an older version lacks newer fields, so bring it up to date before the app reads it
   if (doc.workspace) workspace.replaceState(migrateWorkspace(doc.workspace))
-  if (doc.sandbox) sandbox.replaceState(doc.sandbox)
+  if (doc.sandbox) replaceSandboxes(normalizeSandboxes(doc.sandbox))
   rev = doc.rev
   lastSynced = serialize()
   if (currentUser) writeMeta({ userId: currentUser, rev, dirty: false })
@@ -121,8 +133,9 @@ async function push(keepalive = false): Promise<void> {
     return
   }
   setStatus("saving")
+  if (currentUser) writeMeta({ userId: currentUser, rev, dirty: true, sent: (readMeta()?.sent ?? 0) + 1 })
   try {
-    const res = await api("PUT", { baseRev: rev, workspace: getWorkspace(), sandbox: getSandbox() }, keepalive)
+    const res = await api("PUT", { baseRev: rev, workspace: getWorkspace(), sandbox: allSandboxes() }, keepalive)
     if (res.status === 200) {
       rev = res.json.rev
       lastSynced = current
@@ -130,7 +143,7 @@ async function push(keepalive = false): Promise<void> {
       if (currentUser) writeMeta({ userId: currentUser, rev, dirty: serialize() !== current })
       setStatus("saved")
     } else if (res.status === 409) {
-      const same = canonical({ w: res.json.workspace, s: res.json.sandbox }) === current
+      const same = remoteForm(res.json) === current
       adopt(res.json)
       if (!same) notify("Updated from another device.")
       setStatus("saved")
@@ -144,7 +157,8 @@ async function push(keepalive = false): Promise<void> {
 
 function schedule() {
   if (serialize() === lastSynced) return
-  if (currentUser) writeMeta({ userId: currentUser, rev, dirty: true })
+  // An edit does not forget the saves already sent and still unanswered
+  if (currentUser) writeMeta({ userId: currentUser, rev, dirty: true, sent: readMeta()?.sent })
   setStatus("saving")
   if (timer) clearTimeout(timer)
   timer = setTimeout(() => {
@@ -177,7 +191,7 @@ export async function startSync(userId: string, onNotice: (message: string) => v
   setStatus("loading")
   // Anything the user changes while the server copy is still loading is unsent work too
   let touchedWhileLoading = false
-  const watch = [subscribeWorkspace(() => (touchedWhileLoading = true)), subscribeSandbox(() => (touchedWhileLoading = true))]
+  const watch = [subscribeWorkspace(() => (touchedWhileLoading = true)), subscribeAllSandboxes(() => (touchedWhileLoading = true))]
   try {
     const remote = await api("GET")
     watch.forEach((off) => off())
@@ -190,13 +204,16 @@ export async function startSync(userId: string, onNotice: (message: string) => v
       if (status === "saved") notify("Your work is now saved to your account.")
     } else {
       const meta = readMeta()
-      if (canonical({ w: remote.json.workspace, s: remote.json.sandbox }) === serialize()) {
+      const mine = !!meta && meta.userId === userId
+      // The server is ahead of what this browser last heard, but only by saves this browser itself started: it is its own
+      const ownSaves = mine && remote.json.rev > meta.rev && remote.json.rev <= meta.rev + (meta.sent ?? 0)
+      if (remoteForm(remote.json) === serialize()) {
         // The usual case (a page reload): this browser already has the saved copy, so say nothing
         rev = remote.json.rev
         lastSynced = serialize()
         writeMeta({ userId, rev, dirty: false })
         setStatus("saved")
-      } else if (meta && meta.userId === userId && (meta.dirty || touchedWhileLoading) && meta.rev === remote.json.rev) {
+      } else if (mine && (meta.dirty || touchedWhileLoading) && (remote.json.rev === meta.rev || ownSaves)) {
         // This browser made changes the server has not seen, and nobody else has saved since: ours are newer
         rev = remote.json.rev
         lastSynced = ""
@@ -205,7 +222,7 @@ export async function startSync(userId: string, onNotice: (message: string) => v
         // The account has a workspace that differs from this browser's. Keep what the browser had, in case it
         // was real guest work, then take the account's copy.
         try {
-          window.localStorage.setItem(GUEST_BACKUP_KEY, JSON.stringify({ at: new Date().toISOString(), workspace: getWorkspace(), sandbox: getSandbox() }))
+          window.localStorage.setItem(GUEST_BACKUP_KEY, JSON.stringify({ at: new Date().toISOString(), workspace: getWorkspace(), sandbox: allSandboxes() }))
         } catch {
           // storage blocked: nothing to back up to
         }
@@ -220,7 +237,7 @@ export async function startSync(userId: string, onNotice: (message: string) => v
     return
   }
   if (mine !== generation) return
-  const offs = [subscribeWorkspace(schedule), subscribeSandbox(schedule)]
+  const offs = [subscribeWorkspace(schedule), subscribeAllSandboxes(schedule)]
   document.addEventListener("visibilitychange", onHide)
   window.addEventListener("pagehide", onPageHide)
   unsubscribe = () => {

@@ -174,6 +174,36 @@ test.describe("accounts and saving", () => {
       .toBe("passed")
   })
 
+  test("a save of its own that landed late is not mistaken for another device", async ({ page }) => {
+    await signUp(page)
+    await page.goto("/app/novabank/cases")
+    await expect(page.getByRole("row")).toHaveCount(13)
+    await expect(page.getByRole("status").filter({ hasText: "All changes saved" })).toBeVisible()
+
+    // The state of things after a page is replaced the moment it sends a save: that save lands on the server (so the
+    // server is one revision ahead) but its reply is never seen, and the new page has already been edited
+    const before = await (await page.request.get("/api/workspace")).json()
+    await page.evaluate(() => {
+      const workspace = JSON.parse(localStorage.getItem("assertly:workspace:v1")!)
+      workspace.cases.find((c: { key: string; projectSlug: string }) => c.projectSlug === "novabank" && c.key === "TC-010").status = "passed"
+      localStorage.setItem("assertly:workspace:v1", JSON.stringify(workspace))
+      const meta = JSON.parse(localStorage.getItem("assertly:sync:v1")!)
+      localStorage.setItem("assertly:sync:v1", JSON.stringify({ ...meta, dirty: true, sent: 1 }))
+    })
+    const landed = await page.request.put("/api/workspace", { data: { baseRev: before.rev, workspace: before.workspace, sandbox: before.sandbox } })
+    expect(landed.status()).toBe(200)
+    expect((await (await page.request.get("/api/workspace")).json()).rev).toBe(before.rev + 1)
+
+    await page.reload()
+    await expect(page.getByRole("row", { name: /TC-010/ })).toContainText("Passed")
+    await expect
+      .poll(async () => {
+        const doc = await (await page.request.get("/api/workspace")).json()
+        return doc.workspace.cases.find((c: { key: string; projectSlug: string }) => c.projectSlug === "novabank" && c.key === "TC-010").status
+      })
+      .toBe("passed")
+  })
+
   test("signing out clears this browser's copy of the work", async ({ page }) => {
     await signUp(page)
     await passFirstCase(page, { signedIn: true })

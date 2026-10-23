@@ -4,6 +4,7 @@ import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { toast } from "sonner"
 
+import { SandboxRibbon } from "@/components/sandbox/ribbon"
 import { ThemeToggle } from "@/components/shell/theme-toggle"
 import { Button } from "@/components/ui/button"
 import { NOVABANK_BASE, useSandboxState } from "@/hooks/use-sandbox"
@@ -25,26 +26,16 @@ export function NovaBankFrame({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex min-h-screen flex-col bg-subtle">
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 bg-primary px-4 py-1.5 text-xs text-primary-foreground">
-        <span className="font-bold">Assertly test environment</span>
-        <span className="opacity-90">NovaBank sandbox · build 2.4.1 · test data only</span>
-        <span className="ml-auto flex items-center gap-3">
-          <Link href="/app/novabank/cases" className="underline underline-offset-2">
-            Open workspace
-          </Link>
-          <button
-            type="button"
-            className="underline underline-offset-2"
-            onClick={() => {
-              sandbox.reset()
-              toast.success("Sandbox reset. Accounts restored; your bug-hit log is kept.")
-              router.push(NOVABANK_BASE)
-            }}
-          >
-            Reset sandbox
-          </button>
-        </span>
-      </div>
+      <SandboxRibbon
+        name="NovaBank"
+        build="2.4.1"
+        workspaceHref="/app/novabank/cases"
+        onReset={() => {
+          sandbox.reset()
+          toast.success("Sandbox reset. Accounts restored; your bug-hit log is kept.")
+          router.push(NOVABANK_BASE)
+        }}
+      />
       <header className="border-b bg-background">
         <div className="mx-auto flex h-14 max-w-5xl items-center gap-6 px-4">
           <Link href={NOVABANK_BASE} className="text-lg font-bold tracking-tight text-primary">

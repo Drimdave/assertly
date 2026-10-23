@@ -1,6 +1,9 @@
 import { z } from "zod"
 
 import { ALL_BUG_IDS, SEVERITIES, type BugId } from "@/lib/sandbox/novabank/bugs"
+import { normalizeSandboxes } from "@/lib/sandbox/normalize"
+import { ALL_SHOP_BUG_IDS, type ShopBugId } from "@/lib/sandbox/shop/bugs"
+import type { ShopState } from "@/lib/sandbox/shop/engine"
 import type { SandboxState } from "@/lib/sandbox/novabank/engine"
 import { NOTE_KINDS, PRIORITIES, STATUSES, TEST_TYPES, TIMEBOXES, type WorkspaceState } from "@/lib/workspace/types"
 
@@ -147,11 +150,54 @@ export const sandboxSchema = z.object({
   hits: z.array(z.object({ bugId, at: iso, detail: text(300) })).max(500),
 })
 
+const shopBugId = z.custom<ShopBugId>((v) => typeof v === "string" && ALL_SHOP_BUG_IDS.has(v as ShopBugId), "Unknown defect")
+const cents = z.number().int().min(-100_000_000).max(100_000_000)
+const shippingMethod = z.enum(["standard", "express"])
+
+export const shopSandboxSchema = z.object({
+  v: z.literal(1),
+  seq: z.number().int().min(0),
+  // Quantities can be absurd while a defect is on (that is what it is for), but never unbounded
+  cart: z.array(z.object({ productId: text(40), qty: z.number().int().min(-1_000_000).max(1_000_000) })).max(50),
+  coupon: z.object({ code: z.enum(["SAVE10", "WELCOME5"]), applied: z.number().int().min(1).max(1_000_000) }).nullable(),
+  cartPlaced: z.boolean(),
+  stock: z.record(text(40), z.number().int().min(-1_000_000).max(1_000_000)),
+  orders: z
+    .array(
+      z.object({
+        id,
+        number: text(20),
+        at: iso,
+        email: text(200),
+        name: text(200),
+        shipping: shippingMethod,
+        coupon: text(20).nullable(),
+        lines: z.array(z.object({ productId: text(40), name: text(120), qty: z.number().int().min(-1_000_000).max(1_000_000), unitCents: cents })).max(50),
+        subtotalCents: cents,
+        discountCents: cents,
+        shippingCents: cents,
+        taxCents: cents,
+        totalCents: cents,
+      }),
+    )
+    .max(500),
+  hits: z.array(z.object({ bugId: shopBugId, at: iso, detail: text(300) })).max(500),
+})
+
+/** Saved state of every practice app, keyed by system. A copy saved before there were several systems is upgraded first. */
+export const sandboxesSchema = z.preprocess(
+  normalizeSandboxes,
+  z.object({
+    novabank: sandboxSchema.optional(),
+    shop: shopSandboxSchema.optional(),
+  }),
+)
+
 export const putSchema = z.object({
   /** The revision the client last saw. 0 means "I have never loaded a server copy". */
   baseRev: z.number().int().min(0),
   workspace: workspaceSchema,
-  sandbox: sandboxSchema,
+  sandbox: sandboxesSchema,
 })
 
 export type PutPayload = z.infer<typeof putSchema>
@@ -160,4 +206,5 @@ export type PutPayload = z.infer<typeof putSchema>
 type Assert<T extends true> = T
 type _W = Assert<z.infer<typeof workspaceSchema> extends WorkspaceState ? true : false>
 type _S = Assert<z.infer<typeof sandboxSchema> extends SandboxState ? true : false>
-export type { _W, _S }
+type _P = Assert<z.infer<typeof shopSandboxSchema> extends ShopState ? true : false>
+export type { _W, _S, _P }

@@ -4,7 +4,7 @@ import { buildReport } from "@/lib/workspace/report"
 import { createSeedState, NOVABANK } from "@/lib/workspace/seed"
 import type { TestCase } from "@/lib/workspace/types"
 
-const seed = createSeedState(new Date("2026-10-12T10:00:00.000Z")).cases
+const seed = createSeedState(new Date("2026-10-12T10:00:00.000Z")).cases.filter((c) => c.projectSlug === "novabank")
 const withStatus = (cases: TestCase[], status: TestCase["status"]) => cases.map((c) => ({ ...c, status }))
 
 describe("buildReport on the starter project", () => {

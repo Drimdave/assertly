@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
 
 import { ForYouPanels } from "@/components/learn/for-you-panels"
+import { SystemsPanel } from "@/components/learn/systems-panel"
 import { PathPanel } from "@/components/onboarding/path-panel"
 import { TourButton } from "@/components/onboarding/tour-button"
 
@@ -17,6 +18,7 @@ export default function ForYouPage() {
         <TourButton className="ml-auto" />
       </div>
       <PathPanel />
+      <SystemsPanel />
       <ForYouPanels />
     </div>
   )

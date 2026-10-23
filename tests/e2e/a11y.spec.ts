@@ -11,6 +11,9 @@ const PAGES = [
   { name: "test cases", path: "/app/novabank/cases" },
   { name: "bugs", path: "/app/novabank/bugs" },
   { name: "NovaBank sign in", path: "/sandbox/novabank" },
+  { name: "Cobalt Goods shop", path: "/sandbox/shop" },
+  { name: "shop requirements", path: "/app/shop/requirements" },
+  { name: "shop test cases", path: "/app/shop/cases" },
   { name: "Assertly sign in", path: "/sign-in" },
   { name: "Assertly sign up", path: "/sign-up" },
   { name: "board", path: "/app/novabank/board" },
@@ -93,6 +96,43 @@ for (const scheme of ["light", "dark"] as const) {
       await page.getByRole("button", { name: "Start session" }).click()
       await page.goto("/app/novabank/report")
       await expect(page.getByRole("heading", { name: "Exploratory sessions" })).toBeVisible()
+      expect(await scan(page)).toEqual([])
+    })
+
+    test("the shop's cart, checkout with errors, confirmation and orders have no violations", async ({ page }) => {
+      await page.goto("/sandbox/shop")
+      await page.getByRole("button", { name: "Add Desk lamp to cart" }).click()
+      await page.getByRole("button", { name: "Add Desk lamp to cart" }).click()
+      await page.goto("/sandbox/shop/cart")
+      await page.getByLabel("Coupon code").fill("SAVE10")
+      await page.getByRole("button", { name: "Apply" }).click()
+      await expect(page.getByTestId("coupon-active")).toBeVisible()
+      await page.getByRole("textbox", { name: "Quantity for Desk lamp" }).fill("abc")
+      await page.keyboard.press("Enter")
+      await expect(page.getByRole("alert").filter({ hasText: "Enter a whole number." })).toBeVisible()
+      expect(await scan(page)).toEqual([])
+
+      await page.goto("/sandbox/shop/checkout")
+      await page.getByRole("button", { name: "Place order" }).click()
+      await expect(page.getByText("Enter your email address.")).toBeVisible()
+      expect(await scan(page)).toEqual([])
+
+      const v = { Email: "alex@example.com", "Full name": "Alex Doe", "Street address": "1 Main Street", City: "Springfield", "ZIP code": "12345", "Card number": "4242 4242 4242 4242", "Expiry (MM/YY)": "12/30", "Security code": "123" }
+      for (const [label, value] of Object.entries(v)) await page.getByLabel(label, { exact: true }).fill(value)
+      await page.getByRole("button", { name: "Place order" }).click()
+      await expect(page.getByRole("heading", { level: 1, name: /Order ORD-1001 confirmed/ })).toBeVisible()
+      expect(await scan(page)).toEqual([])
+
+      await page.goto("/sandbox/shop/orders")
+      await expect(page.getByRole("row", { name: /ORD-1001/ })).toBeVisible()
+      expect(await scan(page)).toEqual([])
+    })
+
+    test("after switching practice system there are no violations", async ({ page }) => {
+      await page.goto("/app/novabank/cases")
+      await page.getByRole("combobox", { name: "Practice system" }).selectOption({ label: "Cobalt Goods" })
+      await expect(page).toHaveURL(/\/app\/shop\/cases$/)
+      await expect(page.getByRole("heading", { level: 1, name: "Test cases" })).toBeVisible()
       expect(await scan(page)).toEqual([])
     })
 

@@ -85,7 +85,7 @@ export function ShareButton({ projectSlug, disabled }: { projectSlug: string; di
           <div className="mt-2 space-y-3 text-sm">
             <p className="text-muted-foreground">Create a read-only link anyone can open, without an account. You need to sign in first so the link has somewhere to live.</p>
             <Button asChild>
-              <Link href="/sign-in?next=/app/novabank/report">Sign in to share</Link>
+              <Link href={`/sign-in?next=/app/${projectSlug}/report`}>Sign in to share</Link>
             </Button>
           </div>
         ) : (

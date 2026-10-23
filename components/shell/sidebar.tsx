@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils"
 import { Logo } from "@/components/brand/logo"
 import { Lozenge } from "@/components/ui/lozenge"
 import { TourButton } from "@/components/onboarding/tour-button"
+import { SystemSwitcher } from "@/components/shell/system-switcher"
 import { AccountMenu } from "@/components/shell/account-menu"
 import { ThemeToggle } from "@/components/shell/theme-toggle"
 import { isActive, navGroups, projectFromPath } from "@/components/shell/nav-config"
@@ -24,6 +25,9 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
   const groups = navGroups(projectFromPath(pathname))
   return (
     <nav aria-label="Main" className="flex flex-col gap-0.5">
+      <div className="mb-4">
+        <SystemSwitcher onNavigate={onNavigate} />
+      </div>
       {groups.map((group, i) => (
         <div key={group.label ?? i} className={cn(i > 0 && "mt-4")}>
           {group.label && (
@@ -92,7 +96,7 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
 
 export function SidebarFooter() {
   return (
-    <div className="mt-auto space-y-2 border-t pt-3">
+    <div className="space-y-2 border-t pt-3">
       <TourButton variant="ghost" className="w-full justify-start text-muted-foreground" />
       <div className="flex items-center gap-2">
         <AccountMenu />
@@ -104,9 +108,12 @@ export function SidebarFooter() {
 
 export function Sidebar() {
   return (
-    <aside className="hidden w-[232px] shrink-0 flex-col gap-4 border-r bg-subtle p-3 md:flex print:hidden">
+    <aside className="hidden h-full min-h-0 w-[232px] shrink-0 flex-col gap-4 border-r bg-subtle p-3 md:flex print:hidden">
       <Brand />
-      <SidebarNav />
+      {/* The list scrolls by itself on a short window; the account row below it stays in view */}
+      <div className="-mx-1 min-h-0 flex-1 overflow-y-auto px-1">
+        <SidebarNav />
+      </div>
       <SidebarFooter />
     </aside>
   )

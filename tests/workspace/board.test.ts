@@ -4,7 +4,9 @@ import { buildColumns, findColumn, isStatus, moveToColumn, resolveDrop } from "@
 import { reduce } from "@/lib/workspace/reducer"
 import { createSeedState } from "@/lib/workspace/seed"
 
-const state = createSeedState(new Date("2026-10-12T10:00:00.000Z"))
+const full = createSeedState(new Date("2026-10-12T10:00:00.000Z"))
+// The board is per project: these tests are about NovaBank
+const state = { ...full, cases: full.cases.filter((c) => c.projectSlug === "novabank"), activity: full.activity }
 const idOf = (key: string) => state.cases.find((c) => c.key === key)!.id
 
 describe("buildColumns", () => {

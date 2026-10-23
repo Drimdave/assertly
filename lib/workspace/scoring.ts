@@ -1,5 +1,4 @@
-import { BUG_BY_ID, HINT_COST, MAX_POINTS, NOVABANK_BUGS, SEVERITY_POINTS, type SeededBug } from "@/lib/sandbox/novabank/bugs"
-import type { BugHit } from "@/lib/sandbox/novabank/engine"
+import { HINT_COST, maxPoints, SEVERITY_POINTS, type BugHit, type SeededBug } from "@/lib/sandbox/types"
 import type { BugReport, TestCase } from "./types"
 
 /**
@@ -77,11 +76,15 @@ export function reportPoints(bug: SeededBug, quality: number): number {
   return Math.round(SEVERITY_POINTS[bug.severity] * (0.5 + quality / 20))
 }
 
+/**
+ * `bugs` is the answer key of the system under test, so the same scoring judges any practice system.
+ */
 export function assess(
   reports: BugReport[],
   cases: TestCase[],
-  hits: BugHit[],
+  hits: Pick<BugHit, "bugId">[],
   hints: Record<string, number>,
+  bugs: readonly SeededBug[],
 ): Assessment {
   const hitIds = new Set(hits.map((h) => h.bugId))
   const claimed = new Map<string, string>() // bug id -> report key of the first matched report
@@ -91,7 +94,7 @@ export function assess(
   for (const r of ordered) {
     const linked = cases.find((c) => c.id === r.caseId)
     let best: { bug: SeededBug; score: number } | null = null
-    for (const bug of NOVABANK_BUGS) {
+    for (const bug of bugs) {
       const score = matchScore(r, bug, linked)
       if (score > 0 && (!best || score > best.score)) best = { bug, score }
     }
@@ -111,7 +114,7 @@ export function assess(
     }
   }
 
-  const bugs: BugAssessment[] = NOVABANK_BUGS.map((bug) => {
+  const outcomes: BugAssessment[] = bugs.map((bug) => {
     const key = claimed.get(bug.id) ?? null
     const matched = key ? [...byReport.values()].find((a) => a.bugId === bug.id && a.verdict === "matched") : undefined
     return {
@@ -123,19 +126,17 @@ export function assess(
     }
   })
 
-  const earned = bugs.reduce((n, b) => n + b.points, 0)
-  const hintCost = bugs.reduce((n, b) => n + b.hintsRevealed, 0) * HINT_COST
+  const earned = outcomes.reduce((n, b) => n + b.points, 0)
+  const hintCost = outcomes.reduce((n, b) => n + b.hintsRevealed, 0) * HINT_COST
   return {
     reports: reports.map((r) => byReport.get(r.id)!),
-    bugs,
-    found: bugs.filter((b) => b.outcome === "found").length,
-    triggered: bugs.filter((b) => b.outcome === "triggered").length,
-    missed: bugs.filter((b) => b.outcome === "missed").length,
+    bugs: outcomes,
+    found: outcomes.filter((b) => b.outcome === "found").length,
+    triggered: outcomes.filter((b) => b.outcome === "triggered").length,
+    missed: outcomes.filter((b) => b.outcome === "missed").length,
     earned,
     hintCost,
     total: Math.max(0, earned - hintCost),
-    max: MAX_POINTS,
+    max: maxPoints(bugs),
   }
 }
-
-export { BUG_BY_ID }

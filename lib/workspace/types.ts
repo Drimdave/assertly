@@ -62,7 +62,7 @@ export interface ActivityEntry {
   fields?: string[]
 }
 
-import type { Severity } from "@/lib/sandbox/novabank/bugs"
+import type { Severity } from "@/lib/sandbox/types"
 
 export interface BugReport {
   id: string

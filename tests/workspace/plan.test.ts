@@ -41,7 +41,7 @@ describe("plan/save reducer", () => {
 })
 
 describe("evaluatePlan", () => {
-  const cases = seed().cases // 12 cases: 4 passed, 2 failed, 6 others
+  const cases = seed().cases.filter((c) => c.projectSlug === "novabank") // 12 cases: 4 passed, 2 failed, 6 others
   const plan = asPlan(planTemplate(NOVABANK))
 
   it("counts only in-scope cases for execution and pass rate", () => {
@@ -127,5 +127,53 @@ describe("migrateWorkspace", () => {
   it("returns a current document untouched", () => {
     const s = seed()
     expect(migrateWorkspace(s)).toBe(s)
+  })
+})
+
+describe("migrateWorkspace adds practice systems the document has never seen", () => {
+  /** What a user who saved their workspace before the shop existed has: NovaBank only. */
+  function novabankOnly(): WorkspaceState {
+    const full = createSeedState(new Date(AT))
+    const keep = (slug: string) => slug === "novabank"
+    const caseIds = new Set(full.cases.filter((c) => keep(c.projectSlug)).map((c) => c.id))
+    const lastSeq = Math.max(...[...caseIds].map((id) => Number(id.slice(1))))
+    return {
+      ...full,
+      projects: full.projects.filter((p) => keep(p.slug)),
+      cases: full.cases.filter((c) => keep(c.projectSlug)),
+      activity: full.activity.filter((a) => caseIds.has(a.caseId)),
+      nextCaseNumber: { novabank: full.nextCaseNumber.novabank },
+      nextBugNumber: { novabank: 1 },
+      nextSessionNumber: { novabank: 1 },
+      seq: lastSeq + 1,
+    }
+  }
+
+  it("gives an old workspace the shop project with its own starter cases, leaving NovaBank alone", () => {
+    const old = novabankOnly()
+    const migrated = migrateWorkspace(old)
+    expect(migrated.projects.map((p) => p.slug)).toEqual(["novabank", "shop"])
+    expect(migrated.cases.filter((c) => c.projectSlug === "novabank")).toEqual(old.cases)
+    expect(migrated.cases.filter((c) => c.projectSlug === "shop")).toHaveLength(10)
+    expect(migrated.nextCaseNumber).toMatchObject({ novabank: 13, shop: 11 })
+    expect(new Set(migrated.cases.map((c) => c.id)).size).toBe(migrated.cases.length)
+    const activityIds = migrated.activity.map((a) => a.id)
+    expect(new Set(activityIds).size).toBe(activityIds.length)
+    expect(migrated.seq).toBeGreaterThan(old.seq)
+  })
+
+  it("is deterministic and idempotent, so a browser and the server agree about an unchanged document", () => {
+    const old = novabankOnly()
+    expect(JSON.stringify(migrateWorkspace(old))).toBe(JSON.stringify(migrateWorkspace(old)))
+    const once = migrateWorkspace(old)
+    expect(migrateWorkspace(once)).toBe(once) // nothing left to add: the same object back
+  })
+
+  it("does not touch a project the tester has already worked in", () => {
+    const old = novabankOnly()
+    const worked = { ...old, bugs: [bug("high", 1)], plans: [] }
+    const migrated = migrateWorkspace(worked)
+    expect(migrated.bugs).toEqual(worked.bugs)
+    expect(migrated.projects[0]).toEqual(worked.projects[0])
   })
 })

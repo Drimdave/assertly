@@ -11,7 +11,7 @@ import { buildPath, currentLevel, pathTotals, type PathLevel } from "@/lib/onboa
 import { CHALLENGES } from "@/lib/learn/challenges"
 import { challengeProgress } from "@/lib/learn/progress"
 import { evaluatePlan } from "@/lib/workspace/plan"
-import { DEFAULT_PROJECT_SLUG } from "@/lib/workspace/seed"
+import { DEFAULT_PROJECT_SLUG, DEFAULT_SYSTEM } from "@/lib/systems/registry"
 import { assess } from "@/lib/workspace/scoring"
 
 export interface PathState {
@@ -49,7 +49,7 @@ export function usePath(): PathState {
       bugs: bugs.map((b) => ({ caseId: b.caseId, sessionId: b.sessionId })),
       hasPlan: !!plan,
       sessions: workspace.sessions.filter((s) => s.projectSlug === slug).map((s) => ({ status: s.status, notes: s.notes.length })),
-      foundDefects: assess(bugs, cases, sandbox.hits, workspace.hints).found,
+      foundDefects: assess(bugs, cases, sandbox.hits, workspace.hints, DEFAULT_SYSTEM.bugs).found,
       exitCriteriaMet: !!plan && !!project && evaluatePlan(plan, project, cases, bugs).allMet,
     })
     return { ready, levels, current: currentLevel(levels), ...pathTotals(levels) }

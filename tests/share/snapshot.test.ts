@@ -34,12 +34,12 @@ function withFoundNegativeAmount() {
 describe("share snapshot", () => {
   it("returns null for a project that does not exist", () => {
     const { workspace, sandbox } = withFoundNegativeAmount()
-    expect(buildShareSnapshot({ workspace, sandbox, projectSlug: "nope", tester: "A", now: NOW })).toBeNull()
+    expect(buildShareSnapshot({ workspace, sandboxes: { novabank: sandbox }, projectSlug: "nope", tester: "A", now: NOW })).toBeNull()
   })
 
   it("carries the report, defects and the tester's score", () => {
     const { workspace, sandbox } = withFoundNegativeAmount()
-    const snap = buildShareSnapshot({ workspace, sandbox, projectSlug: "novabank", tester: "Ada", now: NOW })!
+    const snap = buildShareSnapshot({ workspace, sandboxes: { novabank: sandbox }, projectSlug: "novabank", tester: "Ada", now: NOW })!
     expect(snap.tester).toBe("Ada")
     expect(snap.report.projectName).toBe("NovaBank Transfers")
     expect(snap.defects.map((d) => d.key)).toEqual(["BUG-001"])
@@ -50,7 +50,7 @@ describe("share snapshot", () => {
 
   it("never includes the title, hints or expected behavior of a defect that was not found", () => {
     const { workspace, sandbox } = withFoundNegativeAmount()
-    const snap = buildShareSnapshot({ workspace, sandbox, projectSlug: "novabank", tester: "Ada", now: NOW })!
+    const snap = buildShareSnapshot({ workspace, sandboxes: { novabank: sandbox }, projectSlug: "novabank", tester: "Ada", now: NOW })!
     const json = JSON.stringify(snap)
     for (const bug of NOVABANK_BUGS.filter((b) => b.id !== "negative-amount")) {
       expect(json).not.toContain(bug.title)
@@ -63,11 +63,11 @@ describe("share snapshot", () => {
 
   it("includes the plan evaluation when the project has a plan, and none when it does not", () => {
     const { workspace, sandbox } = withFoundNegativeAmount()
-    const none = buildShareSnapshot({ workspace, sandbox, projectSlug: "novabank", tester: "Ada", now: NOW })!
+    const none = buildShareSnapshot({ workspace, sandboxes: { novabank: sandbox }, projectSlug: "novabank", tester: "Ada", now: NOW })!
     expect(none.plan).toBeNull()
 
     const withPlan = reduce(workspace, { type: "plan/save", at: NOW.toISOString(), projectSlug: "novabank", input: planTemplate(NOVABANK) })
-    const snap = buildShareSnapshot({ workspace: withPlan, sandbox, projectSlug: "novabank", tester: "Ada", now: NOW })!
+    const snap = buildShareSnapshot({ workspace: withPlan, sandboxes: { novabank: sandbox }, projectSlug: "novabank", tester: "Ada", now: NOW })!
     expect(snap.plan?.title).toBe("NovaBank Transfers test plan")
     expect(snap.plan?.allMet).toBe(false)
     expect(snap.plan?.criteria.map((c) => c.id)).toContain("critical") // the reported critical bug counts
@@ -84,7 +84,7 @@ describe("share snapshot", () => {
     w = reduce(w, { type: "session/note", at: minutes(3), id, kind: "question", text: "Max amount?" })
     w = reduce(w, { type: "session/end", at: minutes(25), id })
     w = reduce(w, { type: "session/update", at: minutes(26), id, patch: { summary: "Done" } })
-    const snap = buildShareSnapshot({ workspace: w, sandbox, projectSlug: "novabank", tester: "Ada", now: new Date(minutes(60)) })!
+    const snap = buildShareSnapshot({ workspace: w, sandboxes: { novabank: sandbox }, projectSlug: "novabank", tester: "Ada", now: new Date(minutes(60)) })!
     expect(snap.sessions).toEqual([
       expect.objectContaining({ key: "ES-001", status: "ended", spentMinutes: 25, timeboxMinutes: 30, questions: 1, bugs: 0, summary: "Done", area: "REQ-02 Funds transfer" }),
     ])
@@ -92,7 +92,7 @@ describe("share snapshot", () => {
 
   it("survives a JSON round trip (it is stored as JSON)", () => {
     const { workspace, sandbox } = withFoundNegativeAmount()
-    const snap = buildShareSnapshot({ workspace, sandbox, projectSlug: "novabank", tester: "Ada", now: NOW })!
+    const snap = buildShareSnapshot({ workspace, sandboxes: { novabank: sandbox }, projectSlug: "novabank", tester: "Ada", now: NOW })!
     expect(JSON.parse(JSON.stringify(snap))).toEqual(snap)
   })
 })

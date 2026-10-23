@@ -1,16 +1,12 @@
+import { HINT_COST, SEVERITIES, SEVERITY_LABEL, SEVERITY_POINTS, maxPoints, type SeededBug, type Severity } from "@/lib/sandbox/types"
+
+export { HINT_COST, SEVERITIES, SEVERITY_LABEL, SEVERITY_POINTS, type SeededBug, type Severity }
+
 /**
  * The seeded defects hidden in the NovaBank sandbox. This registry is the answer key: the sandbox engine
  * (engine.ts) consults it to decide when to misbehave, and the scoring engine (lib/workspace/scoring.ts) uses it
  * to judge what a tester found. Nothing here is shown to the tester until it is found or a hint is revealed.
  */
-export type Severity = "critical" | "high" | "medium" | "low"
-
-export const SEVERITIES: readonly Severity[] = ["critical", "high", "medium", "low"]
-export const SEVERITY_LABEL: Record<Severity, string> = { critical: "Critical", high: "High", medium: "Medium", low: "Low" }
-
-/** Points for finding a defect, before the report-quality factor. */
-export const SEVERITY_POINTS: Record<Severity, number> = { critical: 40, high: 30, medium: 20, low: 10 }
-
 export type BugId =
   | "negative-amount"
   | "balance-stale"
@@ -23,27 +19,11 @@ export type BugId =
   | "letters-accepted"
   | "reference-truncation"
 
-export interface SeededBug {
-  id: BugId
-  severity: Severity
-  requirementKey: string
-  area: "login" | "transfer" | "limits" | "validation" | "balances"
-  /** What is wrong, in one line. Revealed once the defect is found. */
-  title: string
-  /** What should have happened. Revealed once the defect is found. */
-  expected: string
-  /** Progressive hints. Revealing each one costs points. */
-  hints: [string, string]
-  /**
-   * Words and patterns that suggest a bug report describes this defect. A "strong" signal is worth 2 and a "weak"
-   * one 1; a report matches when it scores at least 3 with at least one strong signal.
-   */
-  signals: { strong: RegExp[]; weak: RegExp[] }
-}
 
-export const HINT_COST = 5
+/** NovaBank's registry keeps its own id union, so the engine's switches cannot name a defect that does not exist. */
+export type NovaBankBug = SeededBug & { id: BugId }
 
-export const NOVABANK_BUGS: SeededBug[] = [
+export const NOVABANK_BUGS: NovaBankBug[] = [
   {
     id: "negative-amount",
     severity: "critical",
@@ -247,9 +227,9 @@ export const NOVABANK_BUGS: SeededBug[] = [
   },
 ]
 
-export const BUG_BY_ID: Record<BugId, SeededBug> = Object.fromEntries(NOVABANK_BUGS.map((b) => [b.id, b])) as Record<BugId, SeededBug>
+export const BUG_BY_ID: Record<BugId, NovaBankBug> = Object.fromEntries(NOVABANK_BUGS.map((b) => [b.id, b])) as Record<BugId, NovaBankBug>
 
 /** Every defect is switched on by default. Tests pass smaller sets to check behavior with and without a bug. */
 export const ALL_BUG_IDS: ReadonlySet<BugId> = new Set(NOVABANK_BUGS.map((b) => b.id))
 
-export const MAX_POINTS = NOVABANK_BUGS.reduce((n, b) => n + SEVERITY_POINTS[b.severity], 0)
+export const MAX_POINTS = maxPoints(NOVABANK_BUGS)

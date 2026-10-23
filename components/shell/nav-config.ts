@@ -1,6 +1,6 @@
 import { Bug, ClipboardCheck, ClipboardList, Compass, ExternalLink, FileText, GraduationCap, Home, LayoutGrid, ListChecks, type LucideIcon } from "lucide-react"
 
-import { DEFAULT_PROJECT_SLUG } from "@/lib/workspace/seed"
+import { DEFAULT_PROJECT_SLUG, getSystem } from "@/lib/systems/registry"
 
 export interface NavItem {
   label: string
@@ -20,17 +20,12 @@ export interface NavGroup {
   items: NavItem[]
 }
 
-/** The practice system each project tests, so it is one click away from the workspace. */
-const SYSTEM_UNDER_TEST: Record<string, { label: string; href: string }> = {
-  novabank: { label: "NovaBank app", href: "/sandbox/novabank" },
-}
-
 /**
  * The sidebar follows the order the work happens in: plan what to test, test it, report what you found. A beginner
  * can read it top to bottom as the workflow.
  */
 export function navGroups(project: string): NavGroup[] {
-  const system = SYSTEM_UNDER_TEST[project]
+  const system = getSystem(project)
   return [
     { items: [{ label: "For you", href: "/app", icon: Home, exact: true }] },
     { label: "Learn", items: [{ label: "Fundamentals", href: "/learn", icon: GraduationCap }] },
@@ -44,7 +39,7 @@ export function navGroups(project: string): NavGroup[] {
     {
       label: "Test",
       items: [
-        ...(system ? [{ label: system.label, href: system.href, icon: ExternalLink, external: true, tourId: "system" }] : []),
+        ...(system ? [{ label: `${system.name} app`, href: system.sandboxPath, icon: ExternalLink, external: true, tourId: "system" }] : []),
         { label: "Test cases", href: `/app/${project}/cases`, icon: ListChecks, tourId: "cases" },
         { label: "Board", href: `/app/${project}/board`, icon: LayoutGrid, tourId: "board" },
         { label: "Sessions", href: `/app/${project}/sessions`, icon: Compass, tourId: "sessions" },

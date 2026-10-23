@@ -1,0 +1,212 @@
+import { expect, test, type Page } from "./fixtures"
+
+const SHOP = "/sandbox/shop"
+
+const switchTo = (page: Page, name: string) => page.getByRole("combobox", { name: "Practice system" }).selectOption({ label: name })
+
+async function triggerNegativeQuantity(page: Page) {
+  await page.goto(SHOP)
+  await page.getByRole("button", { name: "Add Dot-grid notebook to cart" }).click()
+  await page.goto(`${SHOP}/cart`)
+  await page.getByRole("textbox", { name: "Quantity for Dot-grid notebook" }).fill("-2")
+  await page.keyboard.press("Enter")
+  await expect(page.getByTestId("line-total-notebook")).toHaveText("-$24.00")
+}
+
+async function reportShopBug(page: Page, title: string) {
+  await page.goto("/app/shop/bugs")
+  await page.getByRole("button", { name: "Report a bug" }).first().click()
+  const drawer = page.getByRole("dialog")
+  await drawer.getByLabel("Title").fill(title)
+  await drawer.getByRole("textbox", { name: "Step 1", exact: true }).fill("Change the quantity of a product in the cart to -2")
+  await drawer.getByLabel("Expected result").fill("A quantity below 1 is rejected with a message")
+  await drawer.getByLabel("Actual result").fill("The negative quantity is accepted and the total goes down")
+  await drawer.getByRole("radio", { name: "Critical" }).click()
+  await drawer.getByRole("button", { name: "Report bug" }).click()
+  await expect(page.getByRole("row", { name: new RegExp(title) })).toBeVisible()
+}
+
+test.describe("switching between practice systems", () => {
+  test("the switcher keeps you on the same page of the workflow for the other system", async ({ page }) => {
+    await page.goto("/app/novabank/bugs")
+    await expect(page.getByRole("combobox", { name: "Practice system" })).toHaveValue("novabank")
+    await switchTo(page, "Cobalt Goods")
+    await expect(page).toHaveURL(/\/app\/shop\/bugs$/)
+    await expect(page.getByRole("combobox", { name: "Practice system" })).toHaveValue("shop")
+    await expect(page.getByRole("navigation", { name: "Breadcrumb" })).toContainText("Cobalt Goods Checkout")
+    await expect(page.getByRole("navigation", { name: "Main" }).getByRole("link", { name: /Cobalt Goods app/ })).toHaveAttribute("href", "/sandbox/shop")
+    await switchTo(page, "NovaBank")
+    await expect(page).toHaveURL(/\/app\/novabank\/bugs$/)
+  })
+
+  test("from a page that is not about a system it starts at the requirements", async ({ page }) => {
+    await page.goto("/learn")
+    await switchTo(page, "Cobalt Goods")
+    await expect(page).toHaveURL(/\/app\/shop\/requirements$/)
+  })
+
+  test("the home page lists both systems with their own progress", async ({ page }) => {
+    await page.goto("/app")
+    const nova = page.locator('[data-system="novabank"]')
+    const shop = page.locator('[data-system="shop"]')
+    await expect(nova).toContainText("NovaBank")
+    await expect(shop).toContainText("Cobalt Goods")
+    await expect(page.getByTestId("novabank-found")).toHaveText("0 of 10 found")
+    await expect(page.getByTestId("shop-found")).toHaveText("0 of 10 found")
+    await expect(shop.getByRole("link", { name: /Open workspace/ })).toHaveAttribute("href", "/app/shop/requirements")
+    await expect(shop.getByRole("link", { name: /Open the Cobalt Goods app/ })).toHaveAttribute("href", "/sandbox/shop")
+  })
+})
+
+test.describe("the shop's own workspace", () => {
+  test("has its own starter test cases, numbered from TC-001, and NovaBank keeps its own", async ({ page }) => {
+    await page.goto("/app/shop/cases")
+    await expect(page.getByRole("row")).toHaveCount(11)
+    await expect(page.getByRole("row", { name: /TC-001/ })).toContainText("Add a product to the cart")
+    await page.goto("/app/novabank/cases")
+    await expect(page.getByRole("row")).toHaveCount(13)
+    await expect(page.getByRole("row", { name: /TC-001/ })).toContainText("Valid login opens the accounts page")
+  })
+
+  test("a new test case in the shop is numbered inside the shop", async ({ page }) => {
+    await page.goto("/app/shop/cases")
+    await page.getByRole("button", { name: "Add test case" }).click()
+    const drawer = page.getByRole("dialog")
+    await drawer.getByLabel("Summary").fill("Coupon codes ignore case")
+    await drawer.getByLabel("Step 1 action").fill("Apply save10 in lower case")
+    await drawer.getByRole("button", { name: "Create test case" }).click()
+    await expect(drawer.getByText("TC-011").first()).toBeVisible()
+  })
+
+  test("requirements come with the shop's own acceptance criteria", async ({ page }) => {
+    await page.goto("/app/shop/requirements")
+    await expect(page.getByRole("heading", { level: 2 })).toHaveCount(6)
+    await expect(page.locator("#REQ-04")).toContainText("Express shipping costs $12.99 and is never free.")
+    await expect(page.locator("#REQ-05")).toContainText("4000 0000 0000 0002")
+    await expect(page.getByRole("link", { name: /Start testing in the Cobalt Goods sandbox/ })).toHaveAttribute("href", "/sandbox/shop")
+  })
+
+  test("the plan template and the session charter examples are about the shop", async ({ page }) => {
+    await page.goto("/app/shop/plan")
+    await page.getByRole("button", { name: "Create from template" }).click()
+    await expect(page.getByLabel("Title")).toHaveValue("Cobalt Goods Checkout test plan")
+    await expect(page.getByLabel("Objective")).toHaveValue(/cart, coupons, shipping, tax and payment/)
+    await expect(page.getByLabel("Test environment")).toHaveValue(/Cobalt Goods sandbox build 1.3.0/)
+    await expect(page.getByRole("checkbox", { name: /REQ-06/ })).toBeChecked()
+
+    await page.goto("/app/shop/sessions")
+    await page.getByRole("button", { name: "New session" }).first().click()
+    await expect(page.getByRole("dialog").getByRole("button", { name: /Explore the cart with different quantities/ })).toBeVisible()
+    await expect(page.getByRole("dialog").getByText(/sign-in page/)).toHaveCount(0) // not NovaBank's examples
+  })
+
+  test("a bug report starts with the shop's build in its environment", async ({ page }) => {
+    await page.goto("/app/shop/bugs")
+    await page.getByRole("button", { name: "Report a bug" }).first().click()
+    await expect(page.getByRole("dialog").getByLabel("Environment")).toHaveValue(/Cobalt Goods sandbox 1\.3\.0, /)
+  })
+})
+
+test.describe("scoring is per system", () => {
+  test("a triggered and reported shop defect is found in the shop, and not credited to NovaBank", async ({ page }) => {
+    await triggerNegativeQuantity(page)
+    await reportShopBug(page, "Negative quantity is accepted in the cart")
+
+    await page.goto("/app/shop/report")
+    await expect(page.getByRole("heading", { name: "Hidden defect assessment" })).toBeVisible()
+    await expect(page.locator('[data-bug="negative-quantity"]')).toHaveAttribute("data-outcome", "found")
+    await expect(page.locator("dl > div", { has: page.getByText("Found", { exact: true }) }).locator("dd").first()).toHaveText("1 of 10")
+
+    await page.goto("/app/novabank/report")
+    await expect(page.locator("dl > div", { has: page.getByText("Found", { exact: true }) }).locator("dd").first()).toHaveText("0 of 10")
+    await expect(page.locator('[data-bug="negative-amount"]')).toHaveAttribute("data-outcome", "missed")
+  })
+
+  test("a report of a shop defect that was never triggered is not credited", async ({ page }) => {
+    await reportShopBug(page, "Negative quantity is accepted in the cart")
+    await page.goto("/app/shop/report")
+    await expect(page.locator('[data-bug="negative-quantity"]')).toHaveAttribute("data-outcome", "missed")
+    await expect(page.getByRole("row", { name: /BUG-001/ }).last()).toContainText("Not reproduced")
+  })
+
+  test("a shop defect that was triggered but not reported is called out, in the shop only", async ({ page }) => {
+    await triggerNegativeQuantity(page)
+    await page.goto("/app/shop/report")
+    await expect(page.locator('[data-bug="negative-quantity"]')).toHaveAttribute("data-outcome", "triggered")
+    await page.goto("/app/novabank/report")
+    await expect(page.locator('[data-bug="negative-amount"]')).toHaveAttribute("data-outcome", "missed")
+  })
+
+  test("hints are the shop's own and cost points", async ({ page }) => {
+    await page.goto("/app/shop/report")
+    await page.locator('[data-bug="coupon-stacking"]').getByRole("button", { name: /Reveal hint 1/ }).click()
+    await expect(page.locator('[data-bug="coupon-stacking"]')).toContainText("one coupon per order")
+    await expect(page.locator("dl > div", { has: page.getByText("Score", { exact: true }) }).locator("dd").first()).toHaveText("0 / 230")
+  })
+
+  test("the home page shows progress per system", async ({ page }) => {
+    await triggerNegativeQuantity(page)
+    await reportShopBug(page, "Negative quantity is accepted in the cart")
+    await page.goto("/app")
+    await expect(page.getByTestId("shop-found")).toHaveText("1 of 10 found")
+    await expect(page.getByTestId("novabank-found")).toHaveText("0 of 10 found")
+  })
+})
+
+test.describe("saving and upgrading", () => {
+  test("a workspace saved before the shop existed gets the shop project, with NovaBank untouched", async ({ page }) => {
+    await page.goto("/app/novabank/cases")
+    await expect(page.getByRole("row")).toHaveCount(13)
+    // Turn the stored workspace into one saved before the shop existed: NovaBank only
+    await page.evaluate(() => {
+      const w = JSON.parse(localStorage.getItem("assertly:workspace:v1")!)
+      const keep = (slug: string) => slug === "novabank"
+      w.projects = w.projects.filter((p: { slug: string }) => keep(p.slug))
+      w.cases = w.cases.filter((c: { projectSlug: string }) => keep(c.projectSlug))
+      const ids = new Set(w.cases.map((c: { id: string }) => c.id))
+      w.activity = w.activity.filter((a: { caseId: string }) => ids.has(a.caseId))
+      w.nextCaseNumber = { novabank: w.nextCaseNumber.novabank }
+      w.nextBugNumber = { novabank: 1 }
+      w.nextSessionNumber = { novabank: 1 }
+      localStorage.setItem("assertly:workspace:v1", JSON.stringify(w))
+    })
+    await page.goto("/app/shop/cases")
+    await expect(page.getByRole("row")).toHaveCount(11)
+    await expect(page.getByRole("row", { name: /TC-001/ })).toContainText("Add a product to the cart")
+    await page.goto("/app/novabank/cases")
+    await expect(page.getByRole("row")).toHaveCount(13)
+  })
+
+  test("both systems are saved with the account, and an old single-system save is still accepted", async ({ page }) => {
+    const email = `systems-${Date.now()}-${Math.random().toString(36).slice(2, 7)}@example.com`
+    await page.goto("/sign-up")
+    await page.getByLabel("Name").fill("Systems Tester")
+    await page.getByLabel("Email").fill(email)
+    await page.getByLabel("Password").fill("correct-horse-battery")
+    await page.getByRole("button", { name: "Create account" }).click()
+    await expect(page).toHaveURL(/\/app$/)
+
+    // Do something in each practice app, so each has state worth saving
+    await page.goto("/sandbox/novabank")
+    await page.getByLabel("Username").fill("alex")
+    await page.getByLabel("Password").fill("Passw0rd!")
+    await page.getByRole("button", { name: "Sign in" }).click()
+    await expect(page.getByRole("heading", { name: "Accounts" })).toBeVisible()
+    const saved = page.waitForResponse((r) => r.url().endsWith("/api/workspace") && r.request().method() === "PUT" && r.ok())
+    await triggerNegativeQuantity(page)
+    await saved
+    await expect
+      .poll(async () => {
+        const doc = await (await page.request.get("/api/workspace")).json()
+        return [doc.sandbox?.novabank?.session?.username, (doc.sandbox?.shop?.hits ?? []).some((h: { bugId: string }) => h.bugId === "negative-quantity")]
+      })
+      .toEqual(["alex", true])
+
+    // A save in the old shape (a NovaBank state on its own) is upgraded, not refused
+    const doc = await (await page.request.get("/api/workspace")).json()
+    const legacy = await page.request.put("/api/workspace", { data: { baseRev: doc.rev, workspace: doc.workspace, sandbox: doc.sandbox.novabank } })
+    expect(legacy.status()).toBe(200)
+    const after = await (await page.request.get("/api/workspace")).json()
+    expect(after.sandbox.novabank.session.username).toBe("alex")
+  })
+})

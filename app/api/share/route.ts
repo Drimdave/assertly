@@ -5,7 +5,7 @@ import { z } from "zod"
 import { isResponse, json, requireUser } from "@/lib/api"
 import { getDb } from "@/lib/db"
 import { createShare, listShares, loadDoc } from "@/lib/db/repo"
-import { sandboxSchema, workspaceSchema } from "@/lib/persistence/payload"
+import { sandboxesSchema, workspaceSchema } from "@/lib/persistence/payload"
 import { buildShareSnapshot } from "@/lib/share/snapshot"
 
 export const dynamic = "force-dynamic"
@@ -37,10 +37,10 @@ export async function POST(request: Request) {
 
   // Built from the server's own copy, never from anything the request carries
   const workspace = workspaceSchema.safeParse(doc.workspace)
-  const sandbox = sandboxSchema.safeParse(doc.sandbox)
-  if (!workspace.success || !sandbox.success) return json({ error: "Saved workspace is invalid." }, 500)
+  const sandboxes = sandboxesSchema.safeParse(doc.sandbox)
+  if (!workspace.success || !sandboxes.success) return json({ error: "Saved workspace is invalid." }, 500)
 
-  const snapshot = buildShareSnapshot({ workspace: workspace.data, sandbox: sandbox.data, projectSlug: input.data.projectSlug, tester: user.name, now: new Date() })
+  const snapshot = buildShareSnapshot({ workspace: workspace.data, sandboxes: sandboxes.data, projectSlug: input.data.projectSlug, tester: user.name, now: new Date() })
   if (!snapshot) return json({ error: "Project not found." }, 404)
 
   const id = randomBytes(9).toString("base64url")

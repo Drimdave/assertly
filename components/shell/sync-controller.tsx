@@ -6,7 +6,7 @@ import { toast } from "sonner"
 import { resetOnboarding } from "@/lib/onboarding/flags"
 import { clearSyncMeta, startSync, stopSync } from "@/lib/persistence/sync"
 import { useSession } from "@/lib/auth-client"
-import { sandbox } from "@/lib/sandbox/novabank/store"
+import { resetAllSandboxes } from "@/lib/sandbox/stores"
 import { workspace } from "@/lib/workspace/store"
 
 /**
@@ -24,7 +24,7 @@ export function SyncController() {
       if (wasSignedIn.current) {
         wasSignedIn.current = false
         workspace.reset()
-        sandbox.resetEverything()
+        resetAllSandboxes()
         clearSyncMeta()
         resetOnboarding()
       }

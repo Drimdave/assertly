@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Lozenge, type LozengeProps } from "@/components/ui/lozenge"
 import { StatusLozenge } from "@/components/workspace/status-lozenge"
 import { useProject } from "@/hooks/use-workspace"
+import { getSystem } from "@/lib/systems/registry"
 import { markSeen } from "@/lib/onboarding/flags"
 import { buildReport, type CoverageState } from "@/lib/workspace/report"
 import { requirementDetail } from "@/lib/workspace/requirements"
@@ -22,6 +23,7 @@ const COVERAGE: Record<CoverageState, { label: string; tone: NonNullable<Lozenge
 
 export function RequirementsView({ projectSlug }: { projectSlug: string }) {
   const { ready, project, cases } = useProject(projectSlug)
+  const system = getSystem(projectSlug)
   const found = ready && !!project
   useEffect(() => {
     if (found) markSeen("requirements")
@@ -50,8 +52,8 @@ export function RequirementsView({ projectSlug }: { projectSlug: string }) {
           </p>
         </div>
         <Button asChild variant="outline">
-          <Link href="/sandbox/novabank">
-            Start testing in the NovaBank sandbox <ArrowRight />
+          <Link href={system?.sandboxPath ?? "/app"}>
+            Start testing in the {system?.name ?? "practice"} sandbox <ArrowRight />
           </Link>
         </Button>
       </div>

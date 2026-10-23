@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 
-import { BUG_BY_ID, HINT_COST, MAX_POINTS } from "@/lib/sandbox/novabank/bugs"
+import { BUG_BY_ID, HINT_COST, MAX_POINTS, NOVABANK_BUGS } from "@/lib/sandbox/novabank/bugs"
 import type { BugHit } from "@/lib/sandbox/novabank/engine"
 import { assess, reportPoints, reportQuality } from "@/lib/workspace/scoring"
 import { reduce } from "@/lib/workspace/reducer"
@@ -31,7 +31,7 @@ function report(over: Partial<BugReport> & { n?: number } = {}): BugReport {
 
 describe("assess", () => {
   it("gives full credit for a well-written, verified report", () => {
-    const a = assess([report()], [], [hit("negative-amount")], {})
+    const a = assess([report()], [], [hit("negative-amount")], {}, NOVABANK_BUGS)
     expect(a.reports[0]).toMatchObject({ bugId: "negative-amount", verdict: "matched", quality: 9 })
     expect(a.reports[0].points).toBe(reportPoints(BUG_BY_ID["negative-amount"], 9))
     expect(a.found).toBe(1)
@@ -39,27 +39,27 @@ describe("assess", () => {
   })
 
   it("earns nothing when the defect was never triggered", () => {
-    const a = assess([report()], [], [], {})
+    const a = assess([report()], [], [], {}, NOVABANK_BUGS)
     expect(a.reports[0].verdict).toBe("unverified")
     expect(a.earned).toBe(0)
     expect(a.found).toBe(0)
   })
 
   it("marks a triggered but unreported defect as triggered, and the rest as missed", () => {
-    const a = assess([], [], [hit("rounding")], {})
+    const a = assess([], [], [hit("rounding")], {}, NOVABANK_BUGS)
     expect(a.triggered).toBe(1)
     expect(a.missed).toBe(9)
     expect(a.found).toBe(0)
   })
 
   it("treats a second report of the same defect as a duplicate worth nothing", () => {
-    const a = assess([report({ n: 1 }), report({ n: 2, createdAt: "2026-01-01T11:00:00.000Z" })], [], [hit("negative-amount")], {})
+    const a = assess([report({ n: 1 }), report({ n: 2, createdAt: "2026-01-01T11:00:00.000Z" })], [], [hit("negative-amount")], {}, NOVABANK_BUGS)
     expect(a.reports.map((r) => r.verdict)).toEqual(["matched", "duplicate"])
     expect(a.reports[1].points).toBe(0)
   })
 
   it("does not match a vague report", () => {
-    const a = assess([report({ title: "Something is broken", steps: ["Used the app"], expected: "Works", actual: "Does not work" })], [], [hit("negative-amount")], {})
+    const a = assess([report({ title: "Something is broken", steps: ["Used the app"], expected: "Works", actual: "Does not work" })], [], [hit("negative-amount")], {}, NOVABANK_BUGS)
     expect(a.reports[0].verdict).toBe("unmatched")
   })
 
@@ -72,19 +72,19 @@ describe("assess", () => {
       expected: "Account locks after 5 failed attempts",
       actual: "The sign in still works, no lockout",
     })
-    const a = assess([lock], [], [hit("no-lockout")], {})
+    const a = assess([lock], [], [hit("no-lockout")], {}, NOVABANK_BUGS)
     expect(a.reports[0]).toMatchObject({ bugId: "no-lockout", verdict: "matched" })
   })
 
   it("subtracts hint cost from the total but never below zero", () => {
-    const a = assess([report()], [], [hit("negative-amount")], { "negative-amount": 2, rounding: 1 })
+    const a = assess([report()], [], [hit("negative-amount")], { "negative-amount": 2, rounding: 1 }, NOVABANK_BUGS)
     expect(a.hintCost).toBe(3 * HINT_COST)
     expect(a.total).toBe(a.earned - 3 * HINT_COST)
-    expect(assess([], [], [], { rounding: 2 }).total).toBe(0)
+    expect(assess([], [], [], { rounding: 2 }, NOVABANK_BUGS).total).toBe(0)
   })
 
   it("has a maximum equal to the registry total", () => {
-    expect(assess([], [], [], {}).max).toBe(MAX_POINTS)
+    expect(assess([], [], [], {}, NOVABANK_BUGS).max).toBe(MAX_POINTS)
   })
 })
 

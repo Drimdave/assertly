@@ -253,6 +253,7 @@ test.describe("the sidebar", () => {
     await page.goto("/app/novabank/cases")
     const nav = page.getByRole("navigation", { name: "Main" })
     await expect(nav.locator("p")).toHaveText(["Learn", "Plan", "Test", "Report"])
+    await expect(nav.getByLabel("Practice system")).toBeVisible()
     await expect(nav.getByRole("link")).toHaveText([
       "For you",
       "Fundamentals",
@@ -265,6 +266,20 @@ test.describe("the sidebar", () => {
       "Bugs",
       "Test summary",
     ])
+  })
+
+  test("on a short window the list scrolls by itself and the account row stays in view", async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 520 })
+    await page.goto("/app/novabank/cases")
+    await expect(page.getByRole("heading", { level: 1, name: "Test cases" })).toBeVisible()
+    const { scrollHeight, innerHeight } = await page.evaluate(() => ({ scrollHeight: document.documentElement.scrollHeight, innerHeight: window.innerHeight }))
+    expect(scrollHeight).toBeLessThanOrEqual(innerHeight) // the window itself does not scroll
+    const tour = await page.getByRole("button", { name: "Take the tour" }).boundingBox()
+    expect(tour!.y + tour!.height).toBeLessThanOrEqual(520) // the footer is not pushed off the bottom
+    // the last link can still be reached by scrolling the list
+    const last = page.getByRole("navigation", { name: "Main" }).getByRole("link", { name: "Test summary" })
+    await last.scrollIntoViewIfNeeded()
+    await expect(last).toBeInViewport()
   })
 
   test("the practice app is one click away, in a new tab", async ({ page }) => {

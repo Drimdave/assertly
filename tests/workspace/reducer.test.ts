@@ -18,14 +18,21 @@ const input: CaseInput = {
 const byKey = (cases: TestCase[], key: string) => cases.find((c) => c.key === key)!
 
 describe("seed", () => {
-  it("is consistent", () => {
+  it("is consistent: every practice system has a project and its own numbered cases", () => {
     const s = seed()
-    expect(s.cases).toHaveLength(12)
-    expect(new Set(s.cases.map((c) => c.id)).size).toBe(12)
-    expect(new Set(s.cases.map((c) => c.key)).size).toBe(12)
+    expect(s.projects.map((p) => p.slug)).toEqual(["novabank", "shop"])
+    expect(new Set(s.cases.map((c) => c.id)).size).toBe(s.cases.length)
+    for (const project of s.projects) {
+      const cases = s.cases.filter((c) => c.projectSlug === project.slug)
+      expect(cases.length).toBeGreaterThan(0)
+      // keys are numbered per project, so each project has its own TC-001
+      expect(new Set(cases.map((c) => c.key)).size).toBe(cases.length)
+      expect(s.nextCaseNumber[project.slug]).toBe(cases.length + 1)
+      const reqs = new Set(project.requirements.map((r) => r.key))
+      for (const c of cases) expect(reqs.has(c.requirementKey!)).toBe(true)
+    }
+    expect(s.cases.filter((c) => c.projectSlug === "novabank")).toHaveLength(12)
     expect(s.nextCaseNumber[DEFAULT_PROJECT_SLUG]).toBe(13)
-    const reqs = new Set(s.projects[0].requirements.map((r) => r.key))
-    for (const c of s.cases) expect(reqs.has(c.requirementKey!)).toBe(true)
     const activityIds = s.activity.map((a) => a.id)
     expect(new Set(activityIds).size).toBe(activityIds.length)
   })
@@ -110,7 +117,8 @@ describe("case/move", () => {
     const start = seed()
     const moving = byKey(start.cases, "TC-010").id
     const s = reduce(start, { type: "case/move", at: AT, id: moving, status: "passed", beforeId: null })
-    const passed = s.cases.filter((c) => c.status === "passed").map((c) => c.key)
+    // A column belongs to one project, so only that project's cases are in it
+    const passed = s.cases.filter((c) => c.projectSlug === "novabank" && c.status === "passed").map((c) => c.key)
     expect(passed.at(-1)).toBe("TC-010")
   })
 

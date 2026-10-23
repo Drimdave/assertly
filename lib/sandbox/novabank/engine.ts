@@ -1,3 +1,5 @@
+import { formatMoney } from "@/lib/sandbox/money"
+
 import { ALL_BUG_IDS, type BugId } from "./bugs"
 
 /**
@@ -67,9 +69,7 @@ export function initialState(): SandboxState {
   }
 }
 
-export function formatMoney(cents: number): string {
-  return (cents / 100).toLocaleString("en-US", { style: "currency", currency: "USD" })
-}
+export { formatMoney }
 
 const addMinutes = (iso: string, minutes: number) => new Date(new Date(iso).getTime() + minutes * 60_000).toISOString()
 const dayKey = (iso: string) => iso.slice(0, 10)

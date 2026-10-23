@@ -4,7 +4,7 @@ import { caseFormSchema, EMPTY_FORM, normalizeTag, normalizeTags, toCaseInput, t
 import { createSeedState } from "@/lib/workspace/seed"
 import { executionSummary, filterCases, NO_FILTERS, sortCases, statusCounts } from "@/lib/workspace/selectors"
 
-const cases = createSeedState(new Date("2026-10-12T10:00:00.000Z")).cases
+const cases = createSeedState(new Date("2026-10-12T10:00:00.000Z")).cases.filter((c) => c.projectSlug === "novabank")
 
 describe("filterCases", () => {
   it("returns everything with no filters", () => {

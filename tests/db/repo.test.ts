@@ -28,7 +28,7 @@ describe("workspace documents", () => {
     expect(await repo.saveDoc(db, "u1", doc(), 0)).toEqual({ ok: true, rev: 1 })
     const loaded = await repo.loadDoc(db, "u1")
     expect(loaded?.rev).toBe(1)
-    expect((loaded?.workspace as { cases: unknown[] }).cases).toHaveLength(12)
+    expect((loaded?.workspace as { cases: unknown[] }).cases).toHaveLength(22)
   })
 
   it("accepts a write based on the latest revision and bumps it", async () => {

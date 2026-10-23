@@ -474,7 +474,7 @@ export function CasesView({ projectSlug }: { projectSlug: string }) {
           <AlertDialogHeader>
             <AlertDialogTitle>Reset to the sample project?</AlertDialogTitle>
             <AlertDialogDescription>
-              This replaces everything in your local workspace with the starter NovaBank test cases. It cannot be undone.
+              This replaces everything in your local workspace with the starter test cases. It cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

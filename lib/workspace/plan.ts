@@ -1,32 +1,27 @@
+import { getSystem } from "@/lib/systems/registry"
+
 import { executionSummary } from "./selectors"
 import { TEST_TYPE_LABEL, type BugReport, type PlanInput, type Project, type TestCase, type TestPlan } from "./types"
 
-/** A sensible starting plan, so a tester edits instead of facing a blank page. Specific to the project where known. */
+/** A sensible starting plan, so a tester edits instead of facing a blank page. Specific to the system where it is known. */
 export function planTemplate(project: Project): PlanInput {
-  const novabank = project.slug === "novabank"
+  const defaults = getSystem(project.slug)?.plan
   return {
     title: `${project.name} test plan`,
-    objective: novabank
-      ? "Confirm that sign-in, transfers and transfer limits work as specified, and that invalid input is rejected safely, before the release goes live."
-      : `Confirm that ${project.name} meets its requirements and is safe to release.`,
+    objective: defaults?.objective ?? `Confirm that ${project.name} meets its requirements and is safe to release.`,
     inScope: project.requirements.map((r) => r.key),
     outOfScope: "Performance and load testing, and anything outside the requirements listed above.",
     approach:
       "Derive test cases from each requirement's acceptance criteria. Run high priority cases first. Include negative and boundary cases for every input. Report every failure as a bug with steps to reproduce.",
     testTypes: ["functional", "negative", "boundary", "security", "exploratory"],
-    environment: novabank ? "NovaBank sandbox build 2.4.1, latest Chrome, test data only." : "",
+    environment: defaults?.environment ?? "",
     entryCriteria: [
       "Requirements are reviewed and agreed",
       "The test environment is available and reset to a known state",
       "Test accounts and data are ready",
     ],
     exit: { executedPercent: 100, passRate: 95, maxCritical: 0, maxHigh: 0, coverRequirements: true },
-    risks: novabank
-      ? [
-          { risk: "REQ-04 alerts need an SMS gateway that the sandbox does not have", mitigation: "Mark those cases blocked and call out the gap in the summary" },
-          { risk: "Not enough time to cover every boundary", mitigation: "Run high priority and boundary cases first" },
-        ]
-      : [{ risk: "Not enough time to cover everything", mitigation: "Run high priority cases first" }],
+    risks: defaults?.risks ?? [{ risk: "Not enough time to cover everything", mitigation: "Run high priority cases first" }],
   }
 }
 

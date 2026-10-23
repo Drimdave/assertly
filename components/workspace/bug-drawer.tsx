@@ -23,7 +23,7 @@ import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/components/
 import { Textarea } from "@/components/ui/textarea"
 import { notifyUndo } from "@/components/workspace/notify"
 import { RelativeTime } from "@/components/workspace/relative-time"
-import { SEVERITIES, SEVERITY_LABEL } from "@/lib/sandbox/novabank/bugs"
+import { SEVERITIES, SEVERITY_LABEL } from "@/lib/sandbox/types"
 import { cn } from "@/lib/utils"
 import { bugFormSchema, toBugFormValues, toBugInput, type BugFormValues } from "@/lib/workspace/bug-schema"
 import { workspace } from "@/lib/workspace/store"

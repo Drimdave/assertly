@@ -8,7 +8,7 @@ import { Fragment, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetDescription, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import { getChallenge } from "@/lib/learn/challenges"
-import { NOVABANK } from "@/lib/workspace/seed"
+import { getSystem } from "@/lib/systems/registry"
 import { Brand, SidebarFooter, SidebarNav } from "@/components/shell/sidebar"
 
 interface Crumb {
@@ -28,7 +28,7 @@ function crumbsFor(pathname: string): Crumb[] {
       bugs: "Bugs",
       report: "Test summary",
     }
-    const projectName = slug === NOVABANK.slug ? NOVABANK.name : slug
+    const projectName = getSystem(slug)?.project.name ?? slug
     const crumbs: Crumb[] = [{ label: projectName, href: "/app" }]
     // A single session sits under the list of sessions
     if (page === "sessions" && id) return [...crumbs, { label: "Sessions", href: `/app/${slug}/sessions` }, { label: "Session" }]
@@ -61,7 +61,9 @@ export function Topbar() {
           <SheetTitle className="sr-only">Navigation</SheetTitle>
           <SheetDescription className="sr-only">Main navigation</SheetDescription>
           <Brand />
-          <SidebarNav onNavigate={() => setOpen(false)} />
+          <div className="-mx-1 min-h-0 flex-1 overflow-y-auto px-1">
+            <SidebarNav onNavigate={() => setOpen(false)} />
+          </div>
           <SidebarFooter />
         </SheetContent>
       </Sheet>
