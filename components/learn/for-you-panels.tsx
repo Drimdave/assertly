@@ -16,7 +16,7 @@ import { STATUSES, type Status } from "@/lib/workspace/types"
 
 const COMING_NEXT = [
   { title: "Requirement traceability", body: "A matrix tying every requirement to its test cases, sessions and bugs." },
-  { title: "Two more systems", body: "A loan application and an appointment booking system, each with defects of its own." },
+  { title: "One more system", body: "An appointment booking system, with defects of its own." },
 ]
 
 const SEGMENT: Record<Status, string> = {

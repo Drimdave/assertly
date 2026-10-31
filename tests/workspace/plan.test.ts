@@ -4,6 +4,7 @@ import { evaluatePlan, planTemplate } from "@/lib/workspace/plan"
 import { planFormSchema, toPlanFormValues, toPlanInput } from "@/lib/workspace/plan-schema"
 import { migrateWorkspace } from "@/lib/workspace/migrate"
 import { reduce } from "@/lib/workspace/reducer"
+import { SYSTEMS } from "@/lib/systems/registry"
 import { createSeedState, NOVABANK } from "@/lib/workspace/seed"
 import type { BugReport, PlanInput, TestCase, TestPlan, WorkspaceState } from "@/lib/workspace/types"
 
@@ -149,13 +150,16 @@ describe("migrateWorkspace adds practice systems the document has never seen", (
     }
   }
 
-  it("gives an old workspace the shop project with its own starter cases, leaving NovaBank alone", () => {
+  it("gives an old workspace every system it has never seen, with its own starter cases, leaving NovaBank alone", () => {
     const old = novabankOnly()
     const migrated = migrateWorkspace(old)
-    expect(migrated.projects.map((p) => p.slug)).toEqual(["novabank", "shop"])
+    expect(migrated.projects.map((p) => p.slug)).toEqual(SYSTEMS.map((x) => x.slug))
     expect(migrated.cases.filter((c) => c.projectSlug === "novabank")).toEqual(old.cases)
-    expect(migrated.cases.filter((c) => c.projectSlug === "shop")).toHaveLength(10)
-    expect(migrated.nextCaseNumber).toMatchObject({ novabank: 13, shop: 11 })
+    for (const system of SYSTEMS.slice(1)) {
+      expect(migrated.cases.filter((c) => c.projectSlug === system.slug)).toHaveLength(system.seedCases.length)
+      expect(migrated.nextCaseNumber[system.slug]).toBe(system.seedCases.length + 1)
+    }
+    expect(migrated.nextCaseNumber.novabank).toBe(13)
     expect(new Set(migrated.cases.map((c) => c.id)).size).toBe(migrated.cases.length)
     const activityIds = migrated.activity.map((a) => a.id)
     expect(new Set(activityIds).size).toBe(activityIds.length)

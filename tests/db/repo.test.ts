@@ -1,6 +1,7 @@
 // @vitest-environment node
 import { beforeAll, describe, expect, it } from "vitest"
 
+import { SYSTEMS } from "@/lib/systems/registry"
 import { createSeedState } from "@/lib/workspace/seed"
 import { initialState } from "@/lib/sandbox/novabank/engine"
 
@@ -28,7 +29,7 @@ describe("workspace documents", () => {
     expect(await repo.saveDoc(db, "u1", doc(), 0)).toEqual({ ok: true, rev: 1 })
     const loaded = await repo.loadDoc(db, "u1")
     expect(loaded?.rev).toBe(1)
-    expect((loaded?.workspace as { cases: unknown[] }).cases).toHaveLength(22)
+    expect((loaded?.workspace as { cases: unknown[] }).cases).toHaveLength(SYSTEMS.reduce((n, x) => n + x.seedCases.length, 0))
   })
 
   it("accepts a write based on the latest revision and bumps it", async () => {

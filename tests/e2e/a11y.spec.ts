@@ -14,6 +14,9 @@ const PAGES = [
   { name: "Cobalt Goods shop", path: "/sandbox/shop" },
   { name: "shop requirements", path: "/app/shop/requirements" },
   { name: "shop test cases", path: "/app/shop/cases" },
+  { name: "Lendwell landing", path: "/sandbox/loans" },
+  { name: "Lendwell application", path: "/sandbox/loans/apply" },
+  { name: "loan requirements", path: "/app/loans/requirements" },
   { name: "Assertly sign in", path: "/sign-in" },
   { name: "Assertly sign up", path: "/sign-up" },
   { name: "board", path: "/app/novabank/board" },
@@ -97,6 +100,39 @@ for (const scheme of ["light", "dark"] as const) {
       await page.goto("/app/novabank/report")
       await expect(page.getByRole("heading", { name: "Exploratory sessions" })).toBeVisible()
       expect(await scan(page)).toEqual([])
+    })
+
+    test("every step of the loan application, with errors showing, and the decision, have no violations", async ({ page }) => {
+      await page.clock.setFixedTime(new Date("2026-10-23T10:00:00Z"))
+      await page.goto("/sandbox/loans/apply")
+      await page.getByRole("button", { name: "Next" }).click()
+      await expect(page.getByText("Enter your full name.")).toBeVisible()
+      expect(await scan(page)).toEqual([]) // step 1 with errors
+      await page.getByLabel("Full name").fill("Alex Doe")
+      await page.getByLabel("Email").fill("alex@example.com")
+      await page.getByLabel("Date of birth").fill("1990-05-20")
+      await page.getByRole("button", { name: "Next" }).click()
+      await page.getByRole("button", { name: "Next" }).click()
+      await expect(page.getByText("Choose your employment status.")).toBeVisible()
+      expect(await scan(page)).toEqual([]) // step 2 with errors
+      await page.getByLabel("Employment status").selectOption({ label: "Employed" })
+      await page.getByLabel("Monthly income before tax ($)").fill("6000")
+      await page.getByLabel("Existing monthly debt payments ($)").fill("500")
+      await page.getByRole("button", { name: "Next" }).click()
+      await page.getByLabel("Loan amount ($)").fill("10000")
+      await page.getByLabel("Term", { exact: true }).selectOption("36")
+      await page.getByLabel("What is the loan for?").selectOption("Car")
+      await page.getByLabel("Credit score (test data)").fill("760")
+      expect(await scan(page)).toEqual([]) // step 3 filled in
+      await page.getByRole("button", { name: "Next" }).click()
+      await expect(page.getByTestId("monthly")).toBeVisible()
+      expect(await scan(page)).toEqual([]) // review
+      await page.getByRole("button", { name: "Submit application" }).click()
+      await expect(page.getByTestId("decision")).toBeVisible()
+      expect(await scan(page)).toEqual([]) // decision
+      await page.goto("/sandbox/loans/applications")
+      await expect(page.getByRole("row", { name: /LND-1001/ })).toBeVisible()
+      expect(await scan(page)).toEqual([]) // list
     })
 
     test("the shop's cart, checkout with errors, confirmation and orders have no violations", async ({ page }) => {

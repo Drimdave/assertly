@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest"
 
 import { reduce } from "@/lib/workspace/reducer"
+import { SYSTEMS } from "@/lib/systems/registry"
 import { createSeedState, DEFAULT_PROJECT_SLUG } from "@/lib/workspace/seed"
 import type { CaseInput, TestCase } from "@/lib/workspace/types"
 
@@ -20,7 +21,7 @@ const byKey = (cases: TestCase[], key: string) => cases.find((c) => c.key === ke
 describe("seed", () => {
   it("is consistent: every practice system has a project and its own numbered cases", () => {
     const s = seed()
-    expect(s.projects.map((p) => p.slug)).toEqual(["novabank", "shop"])
+    expect(s.projects.map((p) => p.slug)).toEqual(SYSTEMS.map((x) => x.slug))
     expect(new Set(s.cases.map((c) => c.id)).size).toBe(s.cases.length)
     for (const project of s.projects) {
       const cases = s.cases.filter((c) => c.projectSlug === project.slug)

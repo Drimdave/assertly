@@ -1,6 +1,7 @@
 import { expect, test, type Page } from "./fixtures"
 
 const SHOP = "/sandbox/shop"
+const LOANS = "/sandbox/loans"
 
 const switchTo = (page: Page, name: string) => page.getByRole("combobox", { name: "Practice system" }).selectOption({ label: name })
 
@@ -11,6 +12,26 @@ async function triggerNegativeQuantity(page: Page) {
   await page.getByRole("textbox", { name: "Quantity for Dot-grid notebook" }).fill("-2")
   await page.keyboard.press("Enter")
   await expect(page.getByTestId("line-total-notebook")).toHaveText("-$24.00")
+}
+
+async function triggerUnemployedApproved(page: Page) {
+  await page.clock.setFixedTime(new Date("2026-10-23T10:00:00Z"))
+  await page.goto(`${LOANS}/apply`)
+  await page.getByLabel("Full name").fill("Alex Doe")
+  await page.getByLabel("Email").fill("alex@example.com")
+  await page.getByLabel("Date of birth").fill("1990-05-20")
+  await page.getByRole("button", { name: "Next" }).click()
+  await page.getByLabel("Employment status").selectOption({ label: "Unemployed" })
+  await page.getByLabel("Monthly income before tax ($)").fill("6000")
+  await page.getByLabel("Existing monthly debt payments ($)").fill("500")
+  await page.getByRole("button", { name: "Next" }).click()
+  await page.getByLabel("Loan amount ($)").fill("10000")
+  await page.getByLabel("Term", { exact: true }).selectOption("36")
+  await page.getByLabel("What is the loan for?").selectOption("Car")
+  await page.getByLabel("Credit score (test data)").fill("760")
+  await page.getByRole("button", { name: "Next" }).click()
+  await page.getByRole("button", { name: "Submit application" }).click()
+  await expect(page.getByTestId("decision")).toHaveText("Approved")
 }
 
 async function reportShopBug(page: Page, title: string) {
@@ -45,14 +66,25 @@ test.describe("switching between practice systems", () => {
     await expect(page).toHaveURL(/\/app\/shop\/requirements$/)
   })
 
-  test("the home page lists both systems with their own progress", async ({ page }) => {
+  test("the switcher offers every system, in the order they are meant to be tried", async ({ page }) => {
+    await page.goto("/app/novabank/requirements")
+    await expect(page.getByRole("combobox", { name: "Practice system" }).locator("option")).toHaveText(["NovaBank", "Cobalt Goods", "Lendwell"])
+    await switchTo(page, "Lendwell")
+    await expect(page).toHaveURL(/\/app\/loans\/requirements$/)
+    await expect(page.getByRole("navigation", { name: "Main" }).getByRole("link", { name: /Lendwell app/ })).toHaveAttribute("href", "/sandbox/loans")
+  })
+
+  test("the home page lists every system with its own progress", async ({ page }) => {
     await page.goto("/app")
     const nova = page.locator('[data-system="novabank"]')
     const shop = page.locator('[data-system="shop"]')
     await expect(nova).toContainText("NovaBank")
     await expect(shop).toContainText("Cobalt Goods")
+    await expect(page.locator('[data-system="loans"]')).toContainText("Lendwell")
+    await expect(page.locator("[data-system]")).toHaveCount(3)
     await expect(page.getByTestId("novabank-found")).toHaveText("0 of 10 found")
     await expect(page.getByTestId("shop-found")).toHaveText("0 of 10 found")
+    await expect(page.getByTestId("loans-found")).toHaveText("0 of 10 found")
     await expect(shop.getByRole("link", { name: /Open workspace/ })).toHaveAttribute("href", "/app/shop/requirements")
     await expect(shop.getByRole("link", { name: /Open the Cobalt Goods app/ })).toHaveAttribute("href", "/sandbox/shop")
   })
@@ -153,11 +185,59 @@ test.describe("scoring is per system", () => {
   })
 })
 
+test.describe("the loan application's own workspace", () => {
+  test("has its own starter cases and acceptance criteria, numbered from TC-001", async ({ page }) => {
+    await page.goto("/app/loans/cases")
+    await expect(page.getByRole("row")).toHaveCount(11)
+    await expect(page.getByRole("row", { name: /TC-007/ })).toContainText("The monthly payment matches the standard loan formula")
+    await page.goto("/app/loans/requirements")
+    await expect(page.getByRole("heading", { level: 2 })).toHaveCount(6)
+    await expect(page.locator("#REQ-05")).toContainText("Declined if the applicant is Unemployed")
+    await expect(page.locator("#REQ-04")).toContainText("2% origination fee")
+    await expect(page.getByRole("link", { name: /Start testing in the Lendwell sandbox/ })).toHaveAttribute("href", "/sandbox/loans")
+  })
+
+  test("the plan template, charters and bug environment are about Lendwell", async ({ page }) => {
+    await page.goto("/app/loans/plan")
+    await page.getByRole("button", { name: "Create from template" }).click()
+    await expect(page.getByLabel("Title")).toHaveValue("Lendwell Loan Application test plan")
+    await expect(page.getByLabel("Test environment")).toHaveValue(/Lendwell sandbox build 0.9.0/)
+    await page.goto("/app/loans/sessions")
+    await page.getByRole("button", { name: "New session" }).first().click()
+    await expect(page.getByRole("dialog").getByRole("button", { name: /Back and Next to discover what is kept/ })).toBeVisible()
+    await page.keyboard.press("Escape")
+    await page.goto("/app/loans/bugs")
+    await page.getByRole("button", { name: "Report a bug" }).first().click()
+    await expect(page.getByRole("dialog").getByLabel("Environment")).toHaveValue(/Lendwell sandbox 0\.9\.0, /)
+  })
+
+  test("a loan defect is scored in Lendwell only", async ({ page }) => {
+    await triggerUnemployedApproved(page)
+    await page.goto("/app/loans/bugs")
+    await page.getByRole("button", { name: "Report a bug" }).first().click()
+    const drawer = page.getByRole("dialog")
+    await drawer.getByLabel("Title").fill("An unemployed applicant is approved")
+    await drawer.getByRole("textbox", { name: "Step 1", exact: true }).fill("Choose Unemployed as the employment status and submit the application")
+    await drawer.getByLabel("Expected result").fill("An unemployed applicant is declined")
+    await drawer.getByLabel("Actual result").fill("The unemployed applicant is approved")
+    await drawer.getByRole("radio", { name: "Critical" }).click()
+    await drawer.getByRole("button", { name: "Report bug" }).click()
+    await expect(page.getByRole("row", { name: /An unemployed applicant is approved/ })).toBeVisible()
+
+    await page.goto("/app/loans/report")
+    await expect(page.locator('[data-bug="unemployed-approved"]')).toHaveAttribute("data-outcome", "found")
+    for (const other of ["/app/novabank/report", "/app/shop/report"]) {
+      await page.goto(other)
+      await expect(page.locator("dl > div", { has: page.getByText("Found", { exact: true }) }).locator("dd").first()).toHaveText("0 of 10")
+    }
+  })
+})
+
 test.describe("saving and upgrading", () => {
-  test("a workspace saved before the shop existed gets the shop project, with NovaBank untouched", async ({ page }) => {
+  test("a workspace saved before the other systems existed gets their projects, with NovaBank untouched", async ({ page }) => {
     await page.goto("/app/novabank/cases")
     await expect(page.getByRole("row")).toHaveCount(13)
-    // Turn the stored workspace into one saved before the shop existed: NovaBank only
+    // Turn the stored workspace into one saved before the other systems existed: NovaBank only
     await page.evaluate(() => {
       const w = JSON.parse(localStorage.getItem("assertly:workspace:v1")!)
       const keep = (slug: string) => slug === "novabank"
@@ -173,11 +253,13 @@ test.describe("saving and upgrading", () => {
     await page.goto("/app/shop/cases")
     await expect(page.getByRole("row")).toHaveCount(11)
     await expect(page.getByRole("row", { name: /TC-001/ })).toContainText("Add a product to the cart")
+    await page.goto("/app/loans/cases")
+    await expect(page.getByRole("row")).toHaveCount(11)
     await page.goto("/app/novabank/cases")
     await expect(page.getByRole("row")).toHaveCount(13)
   })
 
-  test("both systems are saved with the account, and an old single-system save is still accepted", async ({ page }) => {
+  test("every system is saved with the account, and an old single-system save is still accepted", async ({ page }) => {
     const email = `systems-${Date.now()}-${Math.random().toString(36).slice(2, 7)}@example.com`
     await page.goto("/sign-up")
     await page.getByLabel("Name").fill("Systems Tester")
@@ -192,15 +274,18 @@ test.describe("saving and upgrading", () => {
     await page.getByLabel("Password").fill("Passw0rd!")
     await page.getByRole("button", { name: "Sign in" }).click()
     await expect(page.getByRole("heading", { name: "Accounts" })).toBeVisible()
-    const saved = page.waitForResponse((r) => r.url().endsWith("/api/workspace") && r.request().method() === "PUT" && r.ok())
     await triggerNegativeQuantity(page)
-    await saved
+    await triggerUnemployedApproved(page)
     await expect
       .poll(async () => {
         const doc = await (await page.request.get("/api/workspace")).json()
-        return [doc.sandbox?.novabank?.session?.username, (doc.sandbox?.shop?.hits ?? []).some((h: { bugId: string }) => h.bugId === "negative-quantity")]
+        return [
+          doc.sandbox?.novabank?.session?.username,
+          (doc.sandbox?.shop?.hits ?? []).some((h: { bugId: string }) => h.bugId === "negative-quantity"),
+          (doc.sandbox?.loans?.hits ?? []).some((h: { bugId: string }) => h.bugId === "unemployed-approved"),
+        ]
       })
-      .toEqual(["alex", true])
+      .toEqual(["alex", true, true])
 
     // A save in the old shape (a NovaBank state on its own) is upgraded, not refused
     const doc = await (await page.request.get("/api/workspace")).json()

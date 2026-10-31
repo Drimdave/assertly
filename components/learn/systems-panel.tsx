@@ -64,9 +64,9 @@ export function SystemsPanel() {
     <section aria-label="Practice systems" className="rounded-lg border">
       <header className="flex items-center gap-2 border-b px-4 py-3">
         <h2 className="text-heading-xs">Practice systems</h2>
-        <span className="ml-auto text-sm text-muted-foreground">Each hides bugs of its own. Start with NovaBank.</span>
+        <span className="ml-auto text-sm text-muted-foreground">Each hides bugs of its own. Start with NovaBank, then work up.</span>
       </header>
-      <ul className="grid gap-4 p-4 md:grid-cols-2">
+      <ul className="grid gap-4 p-4 md:grid-cols-2 xl:grid-cols-3">
         {SYSTEMS.map((s) => (
           <SystemCard key={s.slug} system={s} />
         ))}
