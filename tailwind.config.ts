@@ -33,6 +33,9 @@ const config: Config = {
       // Radius scale: 4px controls (sm), 6px (md), 8px panels/popovers (lg). Full rounding only for avatars.
       // Type scale (size / line height), after the Atlassian foundations: headings bold, body regular.
       fontSize: {
+        // Landing page only: the hero title and its section titles. The app itself never goes above heading-xl.
+        display: ["3.5rem", { lineHeight: "3.75rem", fontWeight: "700", letterSpacing: "-0.025em" }],
+        "display-sm": ["2.25rem", { lineHeight: "2.5rem", fontWeight: "700", letterSpacing: "-0.02em" }],
         "heading-xl": ["1.75rem", { lineHeight: "2rem", fontWeight: "700" }],
         "heading-lg": ["1.5rem", { lineHeight: "1.75rem", fontWeight: "700" }],
         "heading-md": ["1.25rem", { lineHeight: "1.5rem", fontWeight: "700" }],

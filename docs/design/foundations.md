@@ -10,7 +10,9 @@ Weights are Regular 400, Medium 500, Bold 700. There is no semibold.
 
 | Token | Size / line height | Use |
 |---|---|---|
-| `text-heading-xl` | 28 / 32 | Marketing and hero titles |
+| `text-display` | 56 / 60, tight tracking | Landing page hero title only |
+| `text-display-sm` | 36 / 40, tight tracking | Landing page section titles, and the hero title on a phone |
+| `text-heading-xl` | 28 / 32 | Large titles inside the app |
 | `text-heading-lg` | 24 / 28 | **Page titles** |
 | `text-heading-md` | 20 / 24 | Drawer and dialog titles |
 | `text-heading-sm` | 16 / 20 | Section titles on a page |

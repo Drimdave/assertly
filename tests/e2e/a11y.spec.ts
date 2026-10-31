@@ -2,6 +2,7 @@ import AxeBuilder from "@axe-core/playwright"
 import { expect, settleAnimations, test, type Page } from "./fixtures"
 
 const PAGES = [
+  { name: "landing page", path: "/" },
   { name: "for you", path: "/app" },
   { name: "fundamentals", path: "/learn" },
   { name: "a challenge", path: "/learn/email" },

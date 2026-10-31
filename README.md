@@ -2,10 +2,11 @@
 
 A hands-on QA practice platform. Testers work the whole job (requirement, test plan, test cases, execution, bug reports, test summary) against realistic systems that contain hidden, seeded bugs, and get scored on what they find.
 
-> **Status: Phase 4 in progress.** The workspace, the NovaBank sandbox with scored hidden defects, accounts, saving and share links work today. The test plan editor and exploratory sessions work; four practice systems are playable, see [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+> **Status: Phases 0 to 4 are done; Phase 5 (launch) is in progress.** The workspace, the NovaBank sandbox with scored hidden defects, accounts, saving and share links work today. The test plan editor and exploratory sessions work; four practice systems are playable, see [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 ## What works today
 
+- **Landing page** (`/`): the front door. What Assertly is, the workflow it follows, the practice systems (read from the same registry as the app, so a new system appears by itself), how scoring works, and a way in with no account. It never redirects: someone who is signed in sees a link to their workspace instead of "Sign in".
 - **App shell:** sidebar, top bar, light and dark themes, responsive down to phone width.
 - **Fundamentals track** (`/learn`): 12 challenges where you discover every validation behavior. Progress is saved in your browser, no sign-up.
 - **Test plan** (`/app/novabank/plan`): scope, approach, types of testing, entry criteria, risks and measurable exit criteria (execution percentage, pass rate, limits on critical and high bugs, requirement coverage). Start from a template. The test summary then checks your real results against the plan's exit criteria.
