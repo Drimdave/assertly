@@ -26,6 +26,7 @@ function crumbsFor(pathname: string): Crumb[] {
       sessions: "Sessions",
       board: "Board",
       bugs: "Bugs",
+      traceability: "Traceability",
       report: "Test summary",
     }
     const projectName = getSystem(slug)?.project.name ?? slug

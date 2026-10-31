@@ -1,4 +1,4 @@
-import { Bug, ClipboardCheck, ClipboardList, Compass, ExternalLink, FileText, GraduationCap, Home, LayoutGrid, ListChecks, type LucideIcon } from "lucide-react"
+import { Bug, ClipboardCheck, ClipboardList, Compass, ExternalLink, FileText, GraduationCap, Home, LayoutGrid, ListChecks, Network, type LucideIcon } from "lucide-react"
 
 import { DEFAULT_PROJECT_SLUG, getSystem } from "@/lib/systems/registry"
 
@@ -49,6 +49,7 @@ export function navGroups(project: string): NavGroup[] {
       label: "Report",
       items: [
         { label: "Bugs", href: `/app/${project}/bugs`, icon: Bug, tourId: "bugs" },
+        { label: "Traceability", href: `/app/${project}/traceability`, icon: Network },
         { label: "Test summary", href: `/app/${project}/report`, icon: FileText, tourId: "summary" },
       ],
     },
@@ -57,7 +58,7 @@ export function navGroups(project: string): NavGroup[] {
 
 /** The project the current URL belongs to, or the default one. */
 export function projectFromPath(pathname: string): string {
-  return pathname.match(/^\/app\/([^/]+)\/(?:requirements|plan|cases|sessions|board|bugs|report)(?:\/|$)/)?.[1] ?? DEFAULT_PROJECT_SLUG
+  return pathname.match(/^\/app\/([^/]+)\/(?:requirements|plan|cases|sessions|board|bugs|traceability|report)(?:\/|$)/)?.[1] ?? DEFAULT_PROJECT_SLUG
 }
 
 export function isActive(pathname: string, item: NavItem) {

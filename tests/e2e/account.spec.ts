@@ -204,6 +204,31 @@ test.describe("accounts and saving", () => {
       .toBe("passed")
   })
 
+  test("a change made before the page has learned who is signed in is kept, not replaced by the saved copy", async ({ page }) => {
+    await signUp(page)
+    // On a slow connection the session check is still pending while the page is already usable. Make it slow, then act
+    // at once: the sign-in below happens before the app knows to start saving
+    let release!: () => void
+    const gate = new Promise<void>((resolve) => (release = resolve))
+    await page.route("**/api/auth/get-session", async (route) => {
+      await gate
+      await route.continue()
+    })
+    await page.goto("/sandbox/novabank")
+    await page.getByLabel("Username").fill("alex")
+    await page.getByLabel("Password").fill("Passw0rd!")
+    await page.getByRole("button", { name: "Sign in" }).click()
+    await expect(page.getByRole("heading", { name: "Accounts" })).toBeVisible()
+    release()
+
+    // The app now learns who is signed in and loads the saved copy, which has no sign-in. Ours is newer and must win
+    await expect
+      .poll(async () => (await (await page.request.get("/api/workspace")).json()).sandbox?.novabank?.session?.username)
+      .toBe("alex")
+    await expect(page.getByRole("heading", { name: "Accounts" })).toBeVisible()
+    expect(await page.evaluate(() => localStorage.getItem("assertly:guest-backup:v1"))).toBeNull() // nothing was replaced
+  })
+
   test("signing out clears this browser's copy of the work", async ({ page }) => {
     await signUp(page)
     await passFirstCase(page, { signedIn: true })

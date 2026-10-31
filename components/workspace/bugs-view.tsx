@@ -32,19 +32,22 @@ export function BugsView({ projectSlug }: { projectSlug: string }) {
 
   // /bugs?case=<id> opens a new report prefilled from that test case, until the tester closes it
   // /bugs?session=<id> does the same for a bug found during an exploratory session
+  // /bugs?open=BUG-001 opens that bug (the traceability matrix links here)
   const caseParam = params.get("case")
   const sessionParam = params.get("session")
-  const param = caseParam ?? sessionParam
+  const openParam = params.get("open")
+  const param = caseParam ?? sessionParam ?? openParam
   const [closedParam, setClosedParam] = useState<string | null>(null)
   const open = ready && param && param !== closedParam
   const fromCase = open && caseParam ? cases.find((c) => c.id === caseParam) : undefined
   const fromSession = open && !caseParam && sessionParam ? state.sessions.find((x) => x.id === sessionParam) : undefined
+  const fromOpen = open && !caseParam && !sessionParam ? bugs.find((b) => b.key === openParam) : undefined
   const prefill = fromCase
     ? bugFormFromCase(fromCase, detectEnvironment(system?.build ?? ""))
     : fromSession
       ? { ...emptyBugForm(detectEnvironment(system?.build ?? "")), sessionId: fromSession.id }
       : null
-  const active: BugTarget | null = target ?? (prefill ? { kind: "new", prefill } : null)
+  const active: BugTarget | null = target ?? (fromOpen ? { kind: "bug", id: fromOpen.id } : prefill ? { kind: "new", prefill } : null)
   const close = () => {
     setTarget(null)
     if (param) {

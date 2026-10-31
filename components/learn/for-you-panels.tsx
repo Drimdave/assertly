@@ -3,7 +3,6 @@
 import Link from "next/link"
 import { ArrowRight } from "lucide-react"
 
-import { Lozenge } from "@/components/ui/lozenge"
 import { MetricStrip } from "@/components/ui/metric-strip"
 import { StatusLozenge } from "@/components/workspace/status-lozenge"
 import { useLearnState } from "@/hooks/use-learn-state"
@@ -13,10 +12,6 @@ import { categoryProgress, challengeProgress, overallProgress } from "@/lib/lear
 import { DEFAULT_PROJECT_SLUG } from "@/lib/workspace/seed"
 import { executionSummary, statusCounts } from "@/lib/workspace/selectors"
 import { STATUSES, type Status } from "@/lib/workspace/types"
-
-const COMING_NEXT = [
-  { title: "Requirement traceability", body: "A matrix tying every requirement to its test cases, sessions and bugs." },
-]
 
 const SEGMENT: Record<Status, string> = {
   passed: "bg-success",
@@ -148,22 +143,6 @@ export function ForYouPanels() {
           )}
         </div>
       </Panel>
-
-      <div className="lg:col-span-2">
-        <Panel title="Coming next">
-          <ul className="divide-y">
-            {COMING_NEXT.map((item) => (
-              <li key={item.title} className="flex items-start gap-3 px-4 py-3">
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium">{item.title}</p>
-                  <p className="text-sm text-muted-foreground">{item.body}</p>
-                </div>
-                <Lozenge className="mt-0.5">Soon</Lozenge>
-              </li>
-            ))}
-          </ul>
-        </Panel>
-      </div>
       </div>
     </div>
   )

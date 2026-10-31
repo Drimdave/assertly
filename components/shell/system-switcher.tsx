@@ -15,7 +15,7 @@ export function SystemSwitcher({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname()
   const router = useRouter()
   const current = projectFromPath(pathname)
-  const section = pathname.match(/^\/app\/[^/]+\/(requirements|plan|cases|sessions|board|bugs|report)(?:\/|$)/)?.[1]
+  const section = pathname.match(/^\/app\/[^/]+\/(requirements|plan|cases|sessions|board|bugs|traceability|report)(?:\/|$)/)?.[1]
 
   return (
     <div>

@@ -264,6 +264,7 @@ test.describe("the sidebar", () => {
       "Board",
       "Sessions",
       "Bugs",
+      "Traceability",
       "Test summary",
     ])
   })
@@ -297,6 +298,7 @@ test.describe("the sidebar", () => {
     ["sessions", "Sessions"],
     ["board", "Board"],
     ["bugs", "Bugs"],
+    ["traceability", "Traceability"],
     ["report", "Test summary"],
   ] as const) {
     test(`the breadcrumb names ${name} properly`, async ({ page }) => {

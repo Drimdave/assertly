@@ -24,6 +24,7 @@ const PAGES = [
   { name: "Assertly sign up", path: "/sign-up" },
   { name: "board", path: "/app/novabank/board" },
   { name: "test summary", path: "/app/novabank/report" },
+  { name: "traceability", path: "/app/novabank/traceability" },
 ]
 
 async function scan(page: Page) {
@@ -136,6 +137,30 @@ for (const scheme of ["light", "dark"] as const) {
       await page.goto("/sandbox/loans/applications")
       await expect(page.getByRole("row", { name: /LND-1001/ })).toBeVisible()
       expect(await scan(page)).toEqual([]) // list
+    })
+
+    test("the traceability matrix, with bugs, a session and untraced items, has no violations", async ({ page }) => {
+      await page.goto("/app/novabank/cases")
+      await expect(page.getByRole("row")).toHaveCount(13)
+      await page.evaluate(() => {
+        const w = JSON.parse(localStorage.getItem("assertly:workspace:v1")!)
+        const now = new Date().toISOString()
+        const tc5 = w.cases.find((c: { key: string }) => c.key === "TC-005")
+        const bug = (id: string, key: string, caseId: string | null, severity: string) => ({
+          id, key, projectSlug: "novabank", title: `Bug ${key}`, severity, caseId, sessionId: null, steps: ["a"], expected: "b", actual: "c", environment: "d", createdAt: now, updatedAt: now,
+        })
+        const session = (id: string, key: string, requirementKey: string | null, status: string) => ({
+          id, key, projectSlug: "novabank", charter: "Explore transfers to discover limits", requirementKey, timeboxMinutes: 30, status, startedAt: null, endedAt: null, notes: [], summary: "", createdAt: now, updatedAt: now,
+        })
+        w.bugs.push(bug("ba", "BUG-001", tc5.id, "critical"), bug("bb", "BUG-002", null, "low"))
+        w.sessions.push(session("sa", "ES-001", "REQ-03", "ended"), session("sb", "ES-002", null, "running"))
+        w.cases.push({ ...tc5, id: "loose", key: "TC-099", requirementKey: null, status: "failed" })
+        localStorage.setItem("assertly:workspace:v1", JSON.stringify(w))
+      })
+      await page.goto("/app/novabank/traceability")
+      await expect(page.getByRole("region", { name: "Not traced to a requirement" })).toBeVisible()
+      await expect(page.getByRole("link", { name: /BUG-001/ }).first()).toBeVisible()
+      expect(await scan(page)).toEqual([])
     })
 
     test("every step of booking, an appointment, its cancel dialog, rescheduling and the list have no violations", async ({ page }) => {

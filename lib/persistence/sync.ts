@@ -183,14 +183,27 @@ const onPageHide = () => {
   if (status !== "off") void push(true)
 }
 
+/**
+ * Changes made on this page before sync has started. Starting waits for the session check, which on a slow connection
+ * leaves the page usable first. Such changes are not flagged in the saved meta (an earlier page never saw them) and the
+ * watch inside `startSync` is not running yet, so without this they would look like "nothing of mine is newer" and the
+ * server's older copy would replace them.
+ */
+let touchedBeforeStart = false
+if (typeof window !== "undefined") {
+  subscribeWorkspace(() => (touchedBeforeStart = true))
+  subscribeAllSandboxes(() => (touchedBeforeStart = true))
+}
+
 /** Begins syncing for a signed-in user: loads or claims the server copy, then keeps it saved. */
 export async function startSync(userId: string, onNotice: (message: string) => void): Promise<void> {
   notify = onNotice
   currentUser = userId
   const mine = ++generation
   setStatus("loading")
-  // Anything the user changes while the server copy is still loading is unsent work too
-  let touchedWhileLoading = false
+  // Anything the user changes before sync started, or while the server copy is still loading, is unsent work too
+  let touchedWhileLoading = touchedBeforeStart
+  touchedBeforeStart = false
   const watch = [subscribeWorkspace(() => (touchedWhileLoading = true)), subscribeAllSandboxes(() => (touchedWhileLoading = true))]
   try {
     const remote = await api("GET")
@@ -248,6 +261,7 @@ export async function startSync(userId: string, onNotice: (message: string) => v
 }
 
 export function stopSync() {
+  touchedBeforeStart = false
   generation++
   unsubscribe?.()
   unsubscribe = null

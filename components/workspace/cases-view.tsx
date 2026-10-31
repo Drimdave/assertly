@@ -2,6 +2,7 @@
 
 import { useEffect, useEffectEvent, useMemo, useRef, useState } from "react"
 import Link from "next/link"
+import { useRouter, useSearchParams } from "next/navigation"
 import { ArrowDown, ArrowUp, Ban, Check, Plus, Search, X } from "lucide-react"
 import { toast } from "sonner"
 
@@ -90,6 +91,20 @@ export function CasesView({ projectSlug }: { projectSlug: string }) {
   const [confirmReset, setConfirmReset] = useState(false)
   const searchRef = useRef<HTMLInputElement>(null)
 
+  // /cases?open=TC-005 opens that test case, until the tester closes it (the traceability matrix links here)
+  const router = useRouter()
+  const openParam = useSearchParams().get("open")
+  const [closedParam, setClosedParam] = useState<string | null>(null)
+  const fromParam = ready && openParam && openParam !== closedParam ? cases.find((c) => c.key === openParam) : undefined
+  const active: DrawerTarget | null = target ?? (fromParam ? { kind: "case", id: fromParam.id } : null)
+  const closeDrawer = () => {
+    setTarget(null)
+    if (openParam) {
+      setClosedParam(openParam)
+      router.replace(`/app/${projectSlug}/cases`, { scroll: false })
+    }
+  }
+
   const rows = useMemo(() => sortCases(filterCases(cases, filters), sort), [cases, filters, sort])
   // Selection only ever applies to rows you can see
   const selectedRows = rows.filter((c) => selected.has(c.id))
@@ -117,7 +132,7 @@ export function CasesView({ projectSlug }: { projectSlug: string }) {
     })
 
   const onKeyDown = useEffectEvent((e: KeyboardEvent) => {
-    if (target || confirmReset) return
+    if (active || confirmReset) return
     if (e.metaKey || e.ctrlKey || e.altKey) return
     const el = e.target as HTMLElement
     if (el.closest("input:not([type=checkbox]), textarea, select, [contenteditable], [role=combobox]")) {
@@ -457,11 +472,11 @@ export function CasesView({ projectSlug }: { projectSlug: string }) {
 
       {project && (
         <CaseDrawer
-          target={target}
+          target={active}
           project={project}
           cases={cases}
           activity={state.activity}
-          onClose={() => setTarget(null)}
+          onClose={closeDrawer}
           onOpen={(id) => {
             setCursorId(id)
             setTarget({ kind: "case", id })

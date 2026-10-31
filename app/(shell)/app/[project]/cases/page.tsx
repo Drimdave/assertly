@@ -1,3 +1,4 @@
+import { Suspense } from "react"
 import type { Metadata } from "next"
 import { notFound } from "next/navigation"
 
@@ -15,5 +16,9 @@ export function generateStaticParams(): Params[] {
 export default async function CasesPage({ params }: { params: Promise<Params> }) {
   const { project } = await params
   if (!KNOWN_PROJECT_SLUGS.includes(project)) notFound()
-  return <CasesView projectSlug={project} />
+  return (
+    <Suspense>
+      <CasesView projectSlug={project} />
+    </Suspense>
+  )
 }

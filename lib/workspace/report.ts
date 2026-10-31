@@ -63,7 +63,7 @@ const keys = (list: { key: string }[], max = 5) => {
 
 const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`
 
-function coverageState(cases: TestCase[]): CoverageState {
+export function coverageState(cases: TestCase[]): CoverageState {
   if (cases.length === 0) return "no_cases"
   const counts = statusCounts(cases)
   if (counts.failed > 0) return "failing"
