@@ -2,6 +2,8 @@ import { z } from "zod"
 
 import { ALL_BUG_IDS, SEVERITIES, type BugId } from "@/lib/sandbox/novabank/bugs"
 import { normalizeSandboxes } from "@/lib/sandbox/normalize"
+import { ALL_BOOKING_BUG_IDS, type BookingBugId } from "@/lib/sandbox/booking/bugs"
+import type { BookingState } from "@/lib/sandbox/booking/engine"
 import { ALL_LOAN_BUG_IDS, type LoanBugId } from "@/lib/sandbox/loans/bugs"
 import type { LoanState } from "@/lib/sandbox/loans/engine"
 import { ALL_SHOP_BUG_IDS, type ShopBugId } from "@/lib/sandbox/shop/bugs"
@@ -216,6 +218,47 @@ export const loansSandboxSchema = z.object({
   hits: z.array(z.object({ bugId: loanBugId, at: iso, detail: text(300) })).max(500),
 })
 
+const bookingBugId = z.custom<BookingBugId>((v) => typeof v === "string" && ALL_BOOKING_BUG_IDS.has(v as BookingBugId), "Unknown defect")
+const serviceId = z.enum(["checkup", "consultation", "treatment"])
+
+export const bookingSandboxSchema = z.object({
+  v: z.literal(1),
+  seq: z.number().int().min(0),
+  draft: z
+    .object({
+      step: z.union([z.literal(0), z.literal(1), z.literal(2), z.literal(3)]),
+      serviceId: serviceId.or(z.literal("")),
+      date: text(40),
+      start: z.number().int().min(0).max(1440).nullable(),
+      name: text(200),
+      email: text(200),
+      phone: text(100),
+      notes: text(1000),
+    })
+    .nullable(),
+  appointments: z
+    .array(
+      z.object({
+        id,
+        ref: text(20),
+        at: iso,
+        serviceId,
+        date: text(20),
+        start: z.number().int().min(0).max(1440),
+        name: text(200),
+        email: text(200),
+        phone: text(100),
+        notes: text(1000),
+        priceCents: cents,
+        status: z.enum(["confirmed", "cancelled"]),
+        cancelledAt: iso.nullable(),
+        feeCents: cents,
+      }),
+    )
+    .max(500),
+  hits: z.array(z.object({ bugId: bookingBugId, at: iso, detail: text(300) })).max(500),
+})
+
 /** Saved state of every practice app, keyed by system. A copy saved before there were several systems is upgraded first. */
 export const sandboxesSchema = z.preprocess(
   normalizeSandboxes,
@@ -223,6 +266,7 @@ export const sandboxesSchema = z.preprocess(
     novabank: sandboxSchema.optional(),
     shop: shopSandboxSchema.optional(),
     loans: loansSandboxSchema.optional(),
+    booking: bookingSandboxSchema.optional(),
   }),
 )
 
@@ -241,4 +285,5 @@ type _W = Assert<z.infer<typeof workspaceSchema> extends WorkspaceState ? true :
 type _S = Assert<z.infer<typeof sandboxSchema> extends SandboxState ? true : false>
 type _P = Assert<z.infer<typeof shopSandboxSchema> extends ShopState ? true : false>
 type _L = Assert<z.infer<typeof loansSandboxSchema> extends LoanState ? true : false>
-export type { _W, _S, _P, _L }
+type _B = Assert<z.infer<typeof bookingSandboxSchema> extends BookingState ? true : false>
+export type { _W, _S, _P, _L, _B }

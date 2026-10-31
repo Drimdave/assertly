@@ -3,9 +3,9 @@
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 
+import { Field } from "@/components/sandbox/field"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { LOANS_BASE, useLoanState } from "@/hooks/use-loans"
 import { useIsClient } from "@/hooks/use-is-client"
 import {
@@ -17,21 +17,6 @@ import { cn } from "@/lib/utils"
 
 const selectClass =
   "flex h-8 w-full rounded-sm border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-
-function Field({ id, label, error, hint, children }: { id: string; label: string; error?: string; hint?: string; children: React.ReactNode }) {
-  return (
-    <div className="space-y-1.5">
-      <Label htmlFor={id}>{label}</Label>
-      {children}
-      {hint && !error && <p className="text-xs text-muted-foreground">{hint}</p>}
-      {error && (
-        <p id={`${id}-error`} role="alert" className="text-xs text-danger">
-          {error}
-        </p>
-      )}
-    </div>
-  )
-}
 
 const ANSWERS: [keyof LoanFields, string][] = [
   ["fullName", "Name"], ["email", "Email"], ["dob", "Date of birth"], ["phone", "Phone"], ["employment", "Employment"],

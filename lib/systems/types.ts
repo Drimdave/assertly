@@ -31,7 +31,7 @@ export interface SystemDef {
   slug: string
   name: string
   tagline: string
-  difficulty: "Starter" | "Intermediate" | "Advanced"
+  difficulty: "Starter" | "Intermediate" | "Advanced" | "Expert"
   /** Where the practice app itself lives. */
   sandboxPath: string
   /** Shown in bug reports' Environment field. */

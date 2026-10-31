@@ -66,7 +66,7 @@ export function SystemsPanel() {
         <h2 className="text-heading-xs">Practice systems</h2>
         <span className="ml-auto text-sm text-muted-foreground">Each hides bugs of its own. Start with NovaBank, then work up.</span>
       </header>
-      <ul className="grid gap-4 p-4 md:grid-cols-2 xl:grid-cols-3">
+      <ul className="grid gap-4 p-4 md:grid-cols-2">
         {SYSTEMS.map((s) => (
           <SystemCard key={s.slug} system={s} />
         ))}

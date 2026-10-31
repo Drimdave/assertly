@@ -2,6 +2,8 @@
 
 import { useSyncExternalStore } from "react"
 
+import type { BookingState } from "./booking/engine"
+import * as bookingStore from "./booking/store"
 import type { LoanState } from "./loans/engine"
 import * as loansStore from "./loans/store"
 import type { SandboxState } from "./novabank/engine"
@@ -45,6 +47,13 @@ export const SANDBOX_STORES: Record<string, SandboxStore> = {
     subscribe: loansStore.subscribe,
     replaceState: (s) => loansStore.loans.replaceState(s as LoanState),
     resetEverything: loansStore.loans.resetEverything,
+  },
+  booking: {
+    getSnapshot: bookingStore.getSnapshot,
+    getServerSnapshot: bookingStore.getServerSnapshot,
+    subscribe: bookingStore.subscribe,
+    replaceState: (s) => bookingStore.booking.replaceState(s as BookingState),
+    resetEverything: bookingStore.booking.resetEverything,
   },
 }
 

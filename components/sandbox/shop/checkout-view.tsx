@@ -5,9 +5,9 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 
 import { QuoteSummary } from "@/components/sandbox/shop/summary"
+import { Field } from "@/components/sandbox/field"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { SHOP_BASE, useShopState } from "@/hooks/use-shop"
 import {
   formatMoney, FREE_SHIPPING_FROM_CENTS, quote, SHIPPING_CENTS, SHIPPING_LABEL, TEST_CARD_DECLINED, TEST_CARD_OK,
@@ -16,21 +16,6 @@ import {
 import { shop } from "@/lib/sandbox/shop/store"
 
 const EMPTY: CheckoutForm = { email: "", name: "", address: "", city: "", zip: "", cardNumber: "", expiry: "", cvc: "", shipping: "standard" }
-
-function Field({ id, label, error, hint, children }: { id: string; label: string; error?: string; hint?: string; children: React.ReactNode }) {
-  return (
-    <div className="space-y-1.5">
-      <Label htmlFor={id}>{label}</Label>
-      {children}
-      {hint && !error && <p className="text-xs text-muted-foreground">{hint}</p>}
-      {error && (
-        <p id={`${id}-error`} role="alert" className="text-xs text-danger">
-          {error}
-        </p>
-      )}
-    </div>
-  )
-}
 
 export function CheckoutView() {
   const router = useRouter()

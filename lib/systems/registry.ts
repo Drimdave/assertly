@@ -1,3 +1,4 @@
+import { booking } from "./booking"
 import { loans } from "./loans"
 import { novabank } from "./novabank"
 import { shop } from "./shop"
@@ -8,7 +9,7 @@ import type { SystemDef } from "./types"
  * used to assume NovaBank (scoring, the summary, the sidebar, the plan template, the requirements page) asks this
  * registry for the system the current project belongs to.
  */
-export const SYSTEMS: readonly SystemDef[] = [novabank, shop, loans]
+export const SYSTEMS: readonly SystemDef[] = [novabank, shop, loans, booking]
 
 export const DEFAULT_SYSTEM: SystemDef = SYSTEMS[0]
 export const DEFAULT_PROJECT_SLUG = DEFAULT_SYSTEM.slug

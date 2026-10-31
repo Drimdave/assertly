@@ -2,6 +2,7 @@ import { expect, test, type Page } from "./fixtures"
 
 const SHOP = "/sandbox/shop"
 const LOANS = "/sandbox/loans"
+const BOOKING = "/sandbox/booking"
 
 const switchTo = (page: Page, name: string) => page.getByRole("combobox", { name: "Practice system" }).selectOption({ label: name })
 
@@ -32,6 +33,16 @@ async function triggerUnemployedApproved(page: Page) {
   await page.getByRole("button", { name: "Next" }).click()
   await page.getByRole("button", { name: "Submit application" }).click()
   await expect(page.getByTestId("decision")).toHaveText("Approved")
+}
+
+/** Offers times on a day the clinic is closed. Works in any time zone: the date is a month ahead. */
+async function triggerHolidayBookable(page: Page) {
+  await page.clock.setFixedTime(new Date("2026-10-23T10:00:00Z"))
+  await page.goto(`${BOOKING}/book`)
+  await page.getByRole("radio", { name: /Check-up/ }).check()
+  await page.getByRole("button", { name: "Next" }).click()
+  await page.getByLabel("Date", { exact: true }).fill("2026-11-11") // Founders' Day
+  await expect(page.getByRole("button", { name: "9:00 AM", exact: true })).toBeVisible()
 }
 
 async function reportShopBug(page: Page, title: string) {
@@ -68,10 +79,13 @@ test.describe("switching between practice systems", () => {
 
   test("the switcher offers every system, in the order they are meant to be tried", async ({ page }) => {
     await page.goto("/app/novabank/requirements")
-    await expect(page.getByRole("combobox", { name: "Practice system" }).locator("option")).toHaveText(["NovaBank", "Cobalt Goods", "Lendwell"])
+    await expect(page.getByRole("combobox", { name: "Practice system" }).locator("option")).toHaveText(["NovaBank", "Cobalt Goods", "Lendwell", "Marlowe Clinic"])
     await switchTo(page, "Lendwell")
     await expect(page).toHaveURL(/\/app\/loans\/requirements$/)
     await expect(page.getByRole("navigation", { name: "Main" }).getByRole("link", { name: /Lendwell app/ })).toHaveAttribute("href", "/sandbox/loans")
+    await switchTo(page, "Marlowe Clinic")
+    await expect(page).toHaveURL(/\/app\/booking\/requirements$/)
+    await expect(page.getByRole("navigation", { name: "Main" }).getByRole("link", { name: /Marlowe Clinic app/ })).toHaveAttribute("href", "/sandbox/booking")
   })
 
   test("the home page lists every system with its own progress", async ({ page }) => {
@@ -81,10 +95,12 @@ test.describe("switching between practice systems", () => {
     await expect(nova).toContainText("NovaBank")
     await expect(shop).toContainText("Cobalt Goods")
     await expect(page.locator('[data-system="loans"]')).toContainText("Lendwell")
-    await expect(page.locator("[data-system]")).toHaveCount(3)
+    await expect(page.locator('[data-system="booking"]')).toContainText("Marlowe Clinic")
+    await expect(page.locator("[data-system]")).toHaveCount(4)
     await expect(page.getByTestId("novabank-found")).toHaveText("0 of 10 found")
     await expect(page.getByTestId("shop-found")).toHaveText("0 of 10 found")
     await expect(page.getByTestId("loans-found")).toHaveText("0 of 10 found")
+    await expect(page.getByTestId("booking-found")).toHaveText("0 of 10 found")
     await expect(shop.getByRole("link", { name: /Open workspace/ })).toHaveAttribute("href", "/app/shop/requirements")
     await expect(shop.getByRole("link", { name: /Open the Cobalt Goods app/ })).toHaveAttribute("href", "/sandbox/shop")
   })
@@ -233,6 +249,54 @@ test.describe("the loan application's own workspace", () => {
   })
 })
 
+test.describe("the clinic's own workspace", () => {
+  test("has its own starter cases and acceptance criteria, numbered from TC-001", async ({ page }) => {
+    await page.goto("/app/booking/cases")
+    await expect(page.getByRole("row")).toHaveCount(11)
+    await expect(page.getByRole("row", { name: /TC-006/ })).toContainText("A booked time, and everything it overlaps, is no longer offered")
+    await page.goto("/app/booking/requirements")
+    await expect(page.getByRole("heading", { level: 2 })).toHaveCount(6)
+    await expect(page.locator("#REQ-02")).toContainText("Closed on 11 November (Founders' Day) and on 25 December")
+    await expect(page.locator("#REQ-05")).toContainText("50% of the appointment's price")
+    await expect(page.getByRole("link", { name: /Start testing in the Marlowe Clinic sandbox/ })).toHaveAttribute("href", "/sandbox/booking")
+  })
+
+  test("the plan template, charters and bug environment are about the clinic", async ({ page }) => {
+    await page.goto("/app/booking/plan")
+    await page.getByRole("button", { name: "Create from template" }).click()
+    await expect(page.getByLabel("Title")).toHaveValue("Marlowe Clinic Booking test plan")
+    await expect(page.getByLabel("Test environment")).toHaveValue(/Marlowe sandbox build 0.9.0/)
+    await page.goto("/app/booking/sessions")
+    await page.getByRole("button", { name: "New session" }).first().click()
+    await expect(page.getByRole("dialog").getByRole("button", { name: /Explore rescheduling an appointment/ })).toBeVisible()
+    await page.keyboard.press("Escape")
+    await page.goto("/app/booking/bugs")
+    await page.getByRole("button", { name: "Report a bug" }).first().click()
+    await expect(page.getByRole("dialog").getByLabel("Environment")).toHaveValue(/Marlowe sandbox 0\.9\.0, /)
+  })
+
+  test("a booking defect is scored in the clinic only", async ({ page }) => {
+    await triggerHolidayBookable(page)
+    await page.goto("/app/booking/bugs")
+    await page.getByRole("button", { name: "Report a bug" }).first().click()
+    const drawer = page.getByRole("dialog")
+    await drawer.getByLabel("Title").fill("The clinic can be booked on a closed holiday")
+    await drawer.getByRole("textbox", { name: "Step 1", exact: true }).fill("Choose a Check-up and pick 11 November, Founders' Day, as the date")
+    await drawer.getByLabel("Expected result").fill("The clinic is closed on 11 November, so no times are offered")
+    await drawer.getByLabel("Actual result").fill("Times from 9:00 AM are offered and can be booked")
+    await drawer.getByRole("radio", { name: "High" }).click()
+    await drawer.getByRole("button", { name: "Report bug" }).click()
+    await expect(page.getByRole("row", { name: /The clinic can be booked on a closed holiday/ })).toBeVisible()
+
+    await page.goto("/app/booking/report")
+    await expect(page.locator('[data-bug="holiday-bookable"]')).toHaveAttribute("data-outcome", "found")
+    for (const other of ["/app/novabank/report", "/app/shop/report", "/app/loans/report"]) {
+      await page.goto(other)
+      await expect(page.locator("dl > div", { has: page.getByText("Found", { exact: true }) }).locator("dd").first()).toHaveText("0 of 10")
+    }
+  })
+})
+
 test.describe("saving and upgrading", () => {
   test("a workspace saved before the other systems existed gets their projects, with NovaBank untouched", async ({ page }) => {
     await page.goto("/app/novabank/cases")
@@ -255,6 +319,8 @@ test.describe("saving and upgrading", () => {
     await expect(page.getByRole("row", { name: /TC-001/ })).toContainText("Add a product to the cart")
     await page.goto("/app/loans/cases")
     await expect(page.getByRole("row")).toHaveCount(11)
+    await page.goto("/app/booking/cases")
+    await expect(page.getByRole("row")).toHaveCount(11)
     await page.goto("/app/novabank/cases")
     await expect(page.getByRole("row")).toHaveCount(13)
   })
@@ -276,6 +342,7 @@ test.describe("saving and upgrading", () => {
     await expect(page.getByRole("heading", { name: "Accounts" })).toBeVisible()
     await triggerNegativeQuantity(page)
     await triggerUnemployedApproved(page)
+    await triggerHolidayBookable(page)
     await expect
       .poll(async () => {
         const doc = await (await page.request.get("/api/workspace")).json()
@@ -283,9 +350,10 @@ test.describe("saving and upgrading", () => {
           doc.sandbox?.novabank?.session?.username,
           (doc.sandbox?.shop?.hits ?? []).some((h: { bugId: string }) => h.bugId === "negative-quantity"),
           (doc.sandbox?.loans?.hits ?? []).some((h: { bugId: string }) => h.bugId === "unemployed-approved"),
+          (doc.sandbox?.booking?.hits ?? []).some((h: { bugId: string }) => h.bugId === "holiday-bookable"),
         ]
       })
-      .toEqual(["alex", true, true])
+      .toEqual(["alex", true, true, true])
 
     // A save in the old shape (a NovaBank state on its own) is upgraded, not refused
     const doc = await (await page.request.get("/api/workspace")).json()

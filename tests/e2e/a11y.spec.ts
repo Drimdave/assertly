@@ -17,6 +17,9 @@ const PAGES = [
   { name: "Lendwell landing", path: "/sandbox/loans" },
   { name: "Lendwell application", path: "/sandbox/loans/apply" },
   { name: "loan requirements", path: "/app/loans/requirements" },
+  { name: "Marlowe Clinic landing", path: "/sandbox/booking" },
+  { name: "Marlowe Clinic booking", path: "/sandbox/booking/book" },
+  { name: "booking requirements", path: "/app/booking/requirements" },
   { name: "Assertly sign in", path: "/sign-in" },
   { name: "Assertly sign up", path: "/sign-up" },
   { name: "board", path: "/app/novabank/board" },
@@ -132,6 +135,51 @@ for (const scheme of ["light", "dark"] as const) {
       expect(await scan(page)).toEqual([]) // decision
       await page.goto("/sandbox/loans/applications")
       await expect(page.getByRole("row", { name: /LND-1001/ })).toBeVisible()
+      expect(await scan(page)).toEqual([]) // list
+    })
+
+    test("every step of booking, an appointment, its cancel dialog, rescheduling and the list have no violations", async ({ page }) => {
+      await page.clock.setFixedTime(new Date("2026-10-23T10:00:00Z"))
+      await page.goto("/sandbox/booking/book")
+      await page.getByRole("button", { name: "Next" }).click()
+      await expect(page.getByText("Choose a service.")).toBeVisible()
+      expect(await scan(page)).toEqual([]) // step 1 with an error
+      await page.getByRole("radio", { name: /Consultation/ }).check()
+      await page.getByRole("button", { name: "Next" }).click()
+      await page.getByLabel("Date", { exact: true }).fill("2026-10-25") // a Sunday
+      await expect(page.getByTestId("day-note")).toBeVisible()
+      expect(await scan(page)).toEqual([]) // a closed day
+      await page.getByLabel("Date", { exact: true }).fill("2026-10-26")
+      await expect(page.getByRole("button", { name: "10:00 AM", exact: true })).toBeVisible()
+      await page.getByRole("button", { name: "Next" }).click()
+      await expect(page.getByText("Choose a time.")).toBeVisible()
+      expect(await scan(page)).toEqual([]) // times, none chosen, with an error
+      await page.getByRole("button", { name: "10:00 AM", exact: true }).click()
+      expect(await scan(page)).toEqual([]) // a time chosen
+      await page.getByRole("button", { name: "Next" }).click()
+      await page.getByRole("button", { name: "Next" }).click()
+      await expect(page.getByText("Enter your full name.")).toBeVisible()
+      expect(await scan(page)).toEqual([]) // step 3 with errors
+      await page.getByLabel("Full name").fill("Alex Doe")
+      await page.getByLabel("Email").fill("alex@example.com")
+      await page.getByLabel("Phone").fill("0123 456 789")
+      await page.getByRole("button", { name: "Next" }).click()
+      await expect(page.getByTestId("price")).toBeVisible()
+      expect(await scan(page)).toEqual([]) // review
+      await page.getByRole("button", { name: "Confirm appointment" }).click()
+      await expect(page.getByTestId("ref")).toBeVisible()
+      expect(await scan(page)).toEqual([]) // confirmation
+      await page.getByRole("button", { name: "Cancel appointment" }).click()
+      await expect(page.getByRole("alertdialog")).toBeVisible()
+      expect(await scan(page)).toEqual([]) // the cancel dialog, open
+      await page.keyboard.press("Escape")
+      await expect(page.getByRole("alertdialog")).toHaveCount(0)
+      await page.getByRole("link", { name: "Reschedule" }).click()
+      await page.getByLabel("Date", { exact: true }).fill("2026-10-27")
+      await expect(page.getByRole("button", { name: "2:00 PM", exact: true })).toBeVisible()
+      expect(await scan(page)).toEqual([]) // rescheduling
+      await page.goto("/sandbox/booking/appointments")
+      await expect(page.getByRole("row", { name: /APT-1001/ })).toBeVisible()
       expect(await scan(page)).toEqual([]) // list
     })
 
