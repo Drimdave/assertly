@@ -59,6 +59,19 @@ function writeMeta(meta: Meta | null) {
 /** Forget the account link, e.g. when signing out. */
 export const clearSyncMeta = () => writeMeta(null)
 
+/**
+ * The backup `startSync` keeps of what this browser held just before an account's copy replaced it. It is only a safety net
+ * for the moment of sign-in; it goes with everything else when the browser is cleared (sign-out, a deleted account), so a
+ * copy of someone's earlier work is not left behind for the next person on this computer.
+ */
+export function clearGuestBackup() {
+  try {
+    window.localStorage.removeItem(GUEST_BACKUP_KEY)
+  } catch {
+    // storage blocked: nothing was kept
+  }
+}
+
 let status: SyncState = "off"
 const statusListeners = new Set<() => void>()
 const setStatus = (s: SyncState) => {
@@ -242,7 +255,7 @@ export async function startSync(userId: string, onNotice: (message: string) => v
         await push()
       } else {
         // The account has a workspace that differs from this browser's. Keep what the browser had, in case it
-        // was real guest work, then take the account's copy.
+        // was real guest work, then take the account's copy. (Cleared again at sign-out: see clearGuestBackup.)
         try {
           window.localStorage.setItem(GUEST_BACKUP_KEY, JSON.stringify({ at: new Date().toISOString(), workspace: getWorkspace(), sandbox: allSandboxes() }))
         } catch {

@@ -220,6 +220,25 @@ test.describe("the account page", () => {
     await expect(page.getByRole("row", { name: /TC-010/ })).toHaveText(rowBefore!)
     expect(await page.evaluate(() => localStorage.getItem("assertly:sync:v1"))).toBeNull()
   })
+
+  test("deleting also clears the backup kept of what this browser held before the account's copy replaced it", async ({ page, browser }) => {
+    const email = await signUp(page)
+    await passFirstCase(page)
+
+    // A second browser signs in: the account's copy differs from what it holds, so it keeps a backup and takes the account's
+    const other = await otherDevice(browser, email)
+    await expect(other.page.getByText("Loaded your saved workspace.")).toBeVisible()
+    const kept = await other.page.evaluate(() => localStorage.getItem("assertly:guest-backup:v1"))
+    expect(kept, "this is the case where a backup is kept").toContain('"workspace"')
+
+    await accountPage(other.page)
+    await other.page.getByRole("button", { name: "Delete account" }).click()
+    await alertDialog(other.page).getByLabel("Your password").fill(PASSWORD)
+    await alertDialog(other.page).getByRole("button", { name: "Delete my account" }).click()
+    await expect(other.page).toHaveURL(/\/$/)
+    await expect.poll(() => other.page.evaluate(() => localStorage.getItem("assertly:guest-backup:v1"))).toBeNull()
+    await other.context.close()
+  })
 })
 
 test.describe("someone who signs in with GitHub", () => {

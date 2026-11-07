@@ -325,6 +325,24 @@ test.describe("accounts and saving", () => {
     expect(await page.evaluate(() => localStorage.getItem("assertly:workspace:v1"))).not.toContain('"Passed"')
   })
 
+  test("signing out also clears the backup kept of what this browser held before the account's copy replaced it", async ({ page, browser }) => {
+    const email = await signUp(page)
+    await passFirstCase(page, { signedIn: true })
+
+    // A second browser signs in: the account's copy differs from what it holds, so it keeps a backup and takes the account's
+    const other = await freshPage(browser)
+    await signInAndWait(other.page, email)
+    await expect(other.page.getByText("Loaded your saved workspace.")).toBeVisible()
+    const kept = await other.page.evaluate(() => localStorage.getItem("assertly:guest-backup:v1"))
+    expect(kept, "this is the case where a backup is kept").toContain('"workspace"')
+
+    await other.page.getByRole("button", { name: "Sign out" }).click()
+    await expect(other.page).toHaveURL(/\/sign-in$/)
+    // The wipe runs once the page has learned the session is gone, so wait for it rather than look at once
+    await expect.poll(() => other.page.evaluate(() => localStorage.getItem("assertly:guest-backup:v1"))).toBeNull()
+    await other.context.close()
+  })
+
   test("the saved-workspace API refuses anonymous callers and malformed data", async ({ page, request, browser }) => {
     expect((await request.get("/api/workspace")).status()).toBe(401)
     expect((await request.put("/api/workspace", { data: {} })).status()).toBe(401)
