@@ -30,7 +30,7 @@ export function safeNext(next: string | undefined): string {
   return next && next.startsWith("/") && !next.startsWith("//") && !next.includes("\\") ? next : "/app"
 }
 
-export function AuthForm({ mode, next, github }: { mode: "sign-in" | "sign-up"; next?: string; github: boolean }) {
+export function AuthForm({ mode, next, github, forgot = false, notice }: { mode: "sign-in" | "sign-up"; next?: string; github: boolean; forgot?: boolean; notice?: string }) {
   const router = useRouter()
   const isSignUp = mode === "sign-up"
   const [error, setError] = useState<string | null>(null)
@@ -44,7 +44,7 @@ export function AuthForm({ mode, next, github }: { mode: "sign-in" | "sign-up"; 
   const onSubmit = handleSubmit(async (v) => {
     setError(null)
     const res = isSignUp
-      ? await authClient.signUp.email({ name: v.name ?? "", email: v.email, password: v.password })
+      ? await authClient.signUp.email({ name: v.name ?? "", email: v.email, password: v.password, callbackURL: "/account" })
       : await authClient.signIn.email({ email: v.email, password: v.password })
     if (res.error) {
       setError(res.error.message ?? (isSignUp ? "Could not create the account." : "Incorrect email or password."))
@@ -63,6 +63,11 @@ export function AuthForm({ mode, next, github }: { mode: "sign-in" | "sign-up"; 
             {isSignUp ? "Save your work and share your reports." : "Pick up where you left off."}
           </p>
         </div>
+        {notice && (
+          <p role="status" className="rounded-sm border border-success/30 bg-success-soft px-3 py-2 text-sm text-success">
+            {notice}
+          </p>
+        )}
         {error && (
           <p role="alert" className="rounded-sm border border-danger/30 bg-danger-soft px-3 py-2 text-sm text-danger">
             {error}
@@ -81,7 +86,14 @@ export function AuthForm({ mode, next, github }: { mode: "sign-in" | "sign-up"; 
           {errors.email && <p role="alert" className="text-xs text-danger">{errors.email.message}</p>}
         </div>
         <div className="space-y-1.5">
-          <Label htmlFor="password">Password</Label>
+          <div className="flex items-baseline justify-between">
+            <Label htmlFor="password">Password</Label>
+            {!isSignUp && forgot && (
+              <Link href="/forgot-password" className="text-xs text-primary underline underline-offset-2">
+                Forgot your password?
+              </Link>
+            )}
+          </div>
           <Input id="password" type="password" autoComplete={isSignUp ? "new-password" : "current-password"} aria-invalid={!!errors.password} {...register("password")} />
           {errors.password && <p role="alert" className="text-xs text-danger">{errors.password.message}</p>}
         </div>

@@ -12,7 +12,7 @@ import { authClient, useSession } from "@/lib/auth-client"
 type Methods = { status: "loading" } | { status: "error" } | { status: "ready"; providers: string[] }
 
 /** Account settings: who you are, your password, and deleting the account. Only for someone signed in. */
-export function AccountView() {
+export function AccountView({ mail, confirmLinkFailed }: { mail: boolean; confirmLinkFailed: boolean }) {
   const { data, isPending } = useSession()
   const userId = data?.user.id
   const [methods, setMethods] = useState<Methods>({ status: "loading" })
@@ -55,7 +55,15 @@ export function AccountView() {
         <FormError>Could not load your sign-in methods. Reload the page to try again.</FormError>
       ) : (
         <>
-          <ProfileCard key={data.user.id} name={data.user.name} email={data.user.email} providers={methods.providers} />
+          <ProfileCard
+            key={data.user.id}
+            name={data.user.name}
+            email={data.user.email}
+            emailConfirmed={data.user.emailVerified}
+            canConfirm={mail}
+            confirmLinkFailed={confirmLinkFailed}
+            providers={methods.providers}
+          />
           {methods.providers.includes("credential") ? (
             <PasswordCard />
           ) : (
