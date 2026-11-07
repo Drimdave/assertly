@@ -49,7 +49,7 @@ export function navGroups(project: string): NavGroup[] {
       label: "Report",
       items: [
         { label: "Bugs", href: `/app/${project}/bugs`, icon: Bug, tourId: "bugs" },
-        { label: "Traceability", href: `/app/${project}/traceability`, icon: Network },
+        { label: "Traceability", href: `/app/${project}/traceability`, icon: Network, tourId: "traceability" },
         { label: "Test summary", href: `/app/${project}/report`, icon: FileText, tourId: "summary" },
       ],
     },

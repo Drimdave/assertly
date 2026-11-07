@@ -89,3 +89,19 @@ export function useHits(slug: string): BugHit[] {
     () => (store ? store.getServerSnapshot().hits : NO_HITS),
   )
 }
+
+const SERVER_ALL_HITS: Record<string, BugHit[]> = Object.fromEntries(stores().map(([slug, store]) => [slug, store.getServerSnapshot().hits]))
+let allHitsCache: { parts: BugHit[][]; value: Record<string, BugHit[]> } | null = null
+
+/** The same object until some system's hit log changes, which is what lets React tell whether anything did. */
+function allHitsSnapshot(): Record<string, BugHit[]> {
+  const parts = stores().map(([, store]) => store.getSnapshot().hits)
+  if (allHitsCache && parts.length === allHitsCache.parts.length && parts.every((hits, i) => hits === allHitsCache!.parts[i])) return allHitsCache.value
+  allHitsCache = { parts, value: Object.fromEntries(stores().map(([slug], i) => [slug, parts[i]])) }
+  return allHitsCache.value
+}
+
+/** The defects this tester has triggered in every practice system's app, keyed by system. */
+export function useAllHits(): Record<string, BugHit[]> {
+  return useSyncExternalStore(subscribeAllSandboxes, allHitsSnapshot, () => SERVER_ALL_HITS)
+}

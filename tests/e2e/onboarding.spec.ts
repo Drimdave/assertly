@@ -13,11 +13,11 @@ test.describe("the tour", () => {
 
   const dialog = (page: Page) => page.getByRole("dialog")
 
-  test("opens by itself on a first visit to the home page, at step 1 of 8", async ({ page }) => {
+  test("opens by itself on a first visit to the home page, at step 1 of 10", async ({ page }) => {
     await page.goto("/app")
     await expect(dialog(page)).toBeVisible()
     await expect(dialog(page).getByRole("heading", { name: "Welcome to Assertly" })).toBeVisible()
-    await expect(dialog(page).getByText("Step 1 of 8")).toBeVisible()
+    await expect(dialog(page).getByText("Step 1 of 10")).toBeVisible()
     await expect(dialog(page).getByRole("button", { name: "Back" })).toBeDisabled()
     await expect(dialog(page).getByRole("button", { name: "Skip tour" })).toBeVisible()
   })
@@ -32,21 +32,21 @@ test.describe("the tour", () => {
   test("Next and Back move through the steps", async ({ page }) => {
     await page.goto("/app")
     await dialog(page).getByRole("button", { name: "Next" }).click()
-    await expect(dialog(page).getByText("Step 2 of 8")).toBeVisible()
-    await expect(dialog(page).getByRole("heading", { name: "The system you are testing" })).toBeVisible()
+    await expect(dialog(page).getByText("Step 2 of 10")).toBeVisible()
+    await expect(dialog(page).getByRole("heading", { name: "Pick a system to test" })).toBeVisible()
     await dialog(page).getByRole("button", { name: "Back" }).click()
-    await expect(dialog(page).getByText("Step 1 of 8")).toBeVisible()
+    await expect(dialog(page).getByText("Step 1 of 10")).toBeVisible()
   })
 
   test("works from the keyboard: Enter and the arrow keys", async ({ page }) => {
     await page.goto("/app")
     await expect(dialog(page).getByRole("button", { name: "Next" })).toBeFocused()
     await page.keyboard.press("Enter")
-    await expect(dialog(page).getByText("Step 2 of 8")).toBeVisible()
+    await expect(dialog(page).getByText("Step 2 of 10")).toBeVisible()
     await page.keyboard.press("ArrowRight")
-    await expect(dialog(page).getByText("Step 3 of 8")).toBeVisible()
+    await expect(dialog(page).getByText("Step 3 of 10")).toBeVisible()
     await page.keyboard.press("ArrowLeft")
-    await expect(dialog(page).getByText("Step 2 of 8")).toBeVisible()
+    await expect(dialog(page).getByText("Step 2 of 10")).toBeVisible()
   })
 
   test("skipping closes it, and it stays closed after a reload", async ({ page }) => {
@@ -82,20 +82,20 @@ test.describe("the tour", () => {
   test("can be reopened from the sidebar on any page, starting again at step 1", async ({ page }) => {
     await page.goto("/app/novabank/bugs")
     await page.getByRole("button", { name: "Take the tour" }).click()
-    await expect(dialog(page).getByText("Step 1 of 8")).toBeVisible()
+    await expect(dialog(page).getByText("Step 1 of 10")).toBeVisible()
     await dialog(page).getByRole("button", { name: "Next" }).click()
     await page.keyboard.press("Escape")
     await page.getByRole("button", { name: "Take the tour" }).click()
-    await expect(dialog(page).getByText("Step 1 of 8")).toBeVisible()
+    await expect(dialog(page).getByText("Step 1 of 10")).toBeVisible()
   })
 
-  test("eight steps lead to the requirements, and finishing counts as done", async ({ page }) => {
+  test("ten steps lead to the requirements, and finishing counts as done", async ({ page }) => {
     await page.goto("/app")
-    for (let i = 1; i < 8; i++) {
-      await expect(dialog(page).getByText(`Step ${i} of 8`)).toBeVisible()
+    for (let i = 1; i < 10; i++) {
+      await expect(dialog(page).getByText(`Step ${i} of 10`)).toBeVisible()
       await dialog(page).getByRole("button", { name: "Next" }).click()
     }
-    await expect(dialog(page).getByText("Step 8 of 8")).toBeVisible()
+    await expect(dialog(page).getByText("Step 10 of 10")).toBeVisible()
     await expect(dialog(page).getByRole("heading", { name: "See how you did" })).toBeVisible()
     await dialog(page).getByRole("button", { name: "Start with the requirements" }).click()
     await expect(page).toHaveURL(/\/requirements$/)
@@ -107,8 +107,7 @@ test.describe("the tour", () => {
 
   test("'Take me there' goes to that part of the app and closes the tour", async ({ page }) => {
     await page.goto("/app")
-    await dialog(page).getByRole("button", { name: "Next" }).click()
-    await dialog(page).getByRole("button", { name: "Next" }).click()
+    for (let i = 0; i < 3; i++) await dialog(page).getByRole("button", { name: "Next" }).click()
     await dialog(page).getByRole("link", { name: /Read the requirements/ }).click()
     await expect(page).toHaveURL(/\/requirements$/)
     await expect(dialog(page)).toHaveCount(0)
@@ -116,11 +115,11 @@ test.describe("the tour", () => {
 
   test("the NovaBank link opens a new tab and leaves the tour where it was", async ({ page }) => {
     await page.goto("/app")
-    await dialog(page).getByRole("button", { name: "Next" }).click()
+    for (let i = 0; i < 2; i++) await dialog(page).getByRole("button", { name: "Next" }).click()
     const link = dialog(page).getByRole("link", { name: /Open NovaBank in a new tab/ })
     await expect(link).toHaveAttribute("target", "_blank")
     await expect(link).toHaveAttribute("rel", /noopener/)
-    await expect(dialog(page).getByText("Step 2 of 8")).toBeVisible()
+    await expect(dialog(page).getByText("Step 3 of 10")).toBeVisible()
   })
 
   test("a stray click on the page does not end the tour", async ({ page }) => {
@@ -129,7 +128,7 @@ test.describe("the tour", () => {
     await page.mouse.click(8, 8)
     await page.mouse.click(700, 690)
     await expect(dialog(page)).toBeVisible()
-    await expect(dialog(page).getByText("Step 1 of 8")).toBeVisible()
+    await expect(dialog(page).getByText("Step 1 of 10")).toBeVisible()
   })
 
   for (const scheme of ["light", "dark"] as const) {
@@ -139,8 +138,8 @@ test.describe("the tour", () => {
       await page.goto("/app")
       await expect(dialog(page)).toBeVisible()
       expect(await scan(page)).toEqual([])
-      for (let i = 0; i < 7; i++) await dialog(page).getByRole("button", { name: "Next" }).click()
-      await expect(dialog(page).getByText("Step 8 of 8")).toBeVisible()
+      for (let i = 0; i < 9; i++) await dialog(page).getByRole("button", { name: "Next" }).click()
+      await expect(dialog(page).getByText("Step 10 of 10")).toBeVisible()
       expect(await scan(page)).toEqual([])
       await context.close()
     })
@@ -153,7 +152,7 @@ test.describe("your path", () => {
 
   test("starts at level 1 with nothing of yours done, even though the starter project has executed test cases", async ({ page }) => {
     await page.goto("/app")
-    await expect(page.getByText("0 of 13 done")).toBeVisible()
+    await expect(page.getByText("0 of 17 done")).toBeVisible()
     await expect(level(page, 1)).toHaveAttribute("open", "")
     await expect(level(page, 2)).not.toHaveAttribute("open", "")
     await expect(level(page, 3)).not.toHaveAttribute("open", "")
@@ -173,7 +172,7 @@ test.describe("your path", () => {
 
     await page.goto("/app")
     await expect(step(page, "fundamentals")).toHaveAttribute("data-done", "true")
-    await expect(page.getByText(/\d of 13 done/)).toContainText("1 of 13")
+    await expect(page.getByText(/\d of 17 done/)).toContainText("1 of 17")
   })
 
   test("a level can be opened to see what comes later", async ({ page }) => {
@@ -189,7 +188,7 @@ test.describe("your path", () => {
     await expect(page).toHaveURL(/\/requirements$/)
     await expect(page.getByRole("heading", { level: 2, name: "Login" })).toBeVisible()
     await page.getByRole("link", { name: "For you" }).click()
-    await expect(page.getByText("1 of 13 done")).toBeVisible()
+    await expect(page.getByText("1 of 17 done")).toBeVisible()
     await expect(step(page, "requirements")).toHaveAttribute("data-done", "true")
     await expect(step(page, "requirements")).toContainText("(done)")
   })
@@ -342,7 +341,7 @@ test.describe("the tour points at the sidebar", () => {
 
   test("the welcome step points at nothing, and the page is still dimmed", async ({ page }) => {
     await page.goto("/app")
-    await expect(dialog(page).getByText("Step 1 of 8")).toBeVisible()
+    await expect(dialog(page).getByText("Step 1 of 10")).toBeVisible()
     await expect(spot(page)).toHaveAttribute("data-has-target", "false")
     const shadow = await spot(page).evaluate((el) => getComputedStyle(el).boxShadow)
     expect(shadow).toContain("rgba(0, 0, 0, 0.6)")
@@ -351,12 +350,14 @@ test.describe("the tour points at the sidebar", () => {
   test("each step highlights its own item in the sidebar, with the card beside it", async ({ page }) => {
     await page.goto("/app")
     const targets: [string, string[]][] = [
+      ["systems", ["switcher"]],
       ["system", ["system"]],
       ["requirements", ["requirements"]],
       ["plan", ["plan"]],
       ["cases", ["cases", "board"]],
       ["sessions", ["sessions"]],
       ["bugs", ["bugs"]],
+      ["traceability", ["traceability"]],
       ["summary", ["summary"]],
     ]
     for (const [, ids] of targets) {
@@ -385,8 +386,7 @@ test.describe("the tour points at the sidebar", () => {
 
   test("going Back returns the highlight to the previous item, and to nothing on the first step", async ({ page }) => {
     await page.goto("/app")
-    await dialog(page).getByRole("button", { name: "Next" }).click()
-    await dialog(page).getByRole("button", { name: "Next" }).click()
+    for (let i = 0; i < 3; i++) await dialog(page).getByRole("button", { name: "Next" }).click()
     const requirements = await settledSpot(page)
     await dialog(page).getByRole("button", { name: "Next" }).click()
     const plan = await settledSpot(page)
@@ -394,15 +394,13 @@ test.describe("the tour points at the sidebar", () => {
 
     await dialog(page).getByRole("button", { name: "Back" }).click()
     expect((await settledSpot(page)).y).toBeCloseTo(requirements.y, 0)
-    await dialog(page).getByRole("button", { name: "Back" }).click()
-    await dialog(page).getByRole("button", { name: "Back" }).click()
+    for (let i = 0; i < 3; i++) await dialog(page).getByRole("button", { name: "Back" }).click()
     await expect(spot(page)).toHaveAttribute("data-has-target", "false")
   })
 
   test("the highlight glides between items instead of jumping", async ({ page }) => {
     await page.goto("/app")
-    await dialog(page).getByRole("button", { name: "Next" }).click()
-    await dialog(page).getByRole("button", { name: "Next" }).click()
+    for (let i = 0; i < 3; i++) await dialog(page).getByRole("button", { name: "Next" }).click()
     const from = await settledSpot(page)
     await dialog(page).getByRole("button", { name: "Next" }).click()
     // Sampled straight after the click: it has started to move but is not there yet
@@ -431,9 +429,9 @@ test.describe("the tour points at the sidebar", () => {
     const context = await browser.newContext({ viewport: { width: 390, height: 800 } })
     const page = await context.newPage()
     await page.goto("/app")
-    await expect(dialog(page).getByText("Step 1 of 8")).toBeVisible()
+    await expect(dialog(page).getByText("Step 1 of 10")).toBeVisible()
     for (let i = 0; i < 2; i++) await dialog(page).getByRole("button", { name: "Next" }).click()
-    await expect(dialog(page).getByText("Step 3 of 8")).toBeVisible()
+    await expect(dialog(page).getByText("Step 3 of 10")).toBeVisible()
     await expect(spot(page)).toHaveAttribute("data-has-target", "false")
     const card = await box(page.locator("[data-tour-card]"))
     expect(card.x).toBeGreaterThanOrEqual(0)

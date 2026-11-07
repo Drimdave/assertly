@@ -1,7 +1,6 @@
+import { numberWord as word } from "@/lib/number-words"
 import { SYSTEMS } from "@/lib/systems/registry"
 
-const WORDS = ["no", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve"]
-const word = (n: number) => WORDS[n] ?? String(n)
 
 /** Numbers the page quotes, read from the registry so they stay true when a system is added. */
 export const SYSTEM_COUNT = SYSTEMS.length

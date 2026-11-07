@@ -7,11 +7,12 @@ import { useLearnState } from "@/hooks/use-learn-state"
 import { useSandboxState } from "@/hooks/use-sandbox"
 import { useWorkspaceState } from "@/hooks/use-workspace"
 import { useOnboarding } from "@/lib/onboarding/flags"
-import { buildPath, currentLevel, pathTotals, type PathLevel } from "@/lib/onboarding/path"
+import { buildPath, currentLevel, pathTotals, type PathLevel, type ProjectProgress } from "@/lib/onboarding/path"
 import { CHALLENGES } from "@/lib/learn/challenges"
 import { challengeProgress } from "@/lib/learn/progress"
+import { useAllHits } from "@/lib/sandbox/stores"
+import { SYSTEMS } from "@/lib/systems/registry"
 import { evaluatePlan } from "@/lib/workspace/plan"
-import { DEFAULT_PROJECT_SLUG, DEFAULT_SYSTEM } from "@/lib/systems/registry"
 import { assess } from "@/lib/workspace/scoring"
 
 export interface PathState {
@@ -22,20 +23,34 @@ export interface PathState {
   total: number
 }
 
-/** "Your path" for the default project, worked out from what the tester has actually done. */
+/** "Your path", worked out from what the tester has actually done, in every practice system. */
 export function usePath(): PathState {
   const ready = useIsClient()
   const workspace = useWorkspaceState()
   const sandbox = useSandboxState()
+  const hits = useAllHits()
   const learn = useLearnState()
   const { seen } = useOnboarding()
 
   return useMemo(() => {
-    const slug = DEFAULT_PROJECT_SLUG
-    const project = workspace.projects.find((p) => p.slug === slug)
-    const cases = workspace.cases.filter((c) => c.projectSlug === slug)
-    const bugs = workspace.bugs.filter((b) => b.projectSlug === slug)
-    const plan = workspace.plans.find((p) => p.projectSlug === slug)
+    const projects: ProjectProgress[] = SYSTEMS.map((system) => {
+      const slug = system.slug
+      const project = workspace.projects.find((p) => p.slug === slug)
+      const cases = workspace.cases.filter((c) => c.projectSlug === slug)
+      const bugs = workspace.bugs.filter((b) => b.projectSlug === slug)
+      const plan = workspace.plans.find((p) => p.projectSlug === slug)
+      return {
+        slug,
+        seedCaseCount: system.seedCases.length,
+        cases: cases.map((c) => ({ key: c.key, status: c.status })),
+        nextCaseNumber: workspace.nextCaseNumber[slug] ?? 1,
+        bugs: bugs.map((b) => ({ caseId: b.caseId, sessionId: b.sessionId })),
+        hasPlan: !!plan,
+        exitCriteriaMet: !!plan && !!project && evaluatePlan(plan, project, cases, bugs).allMet,
+        sessions: workspace.sessions.filter((s) => s.projectSlug === slug).map((s) => ({ status: s.status, notes: s.notes.length })),
+        foundDefects: assess(bugs, cases, hits[slug] ?? [], workspace.hints, system.bugs).found,
+      }
+    })
     const levels = buildPath({
       seen,
       // Started, not finished: "try a challenge" is done the moment you have found a behavior or submitted once
@@ -44,14 +59,8 @@ export function usePath(): PathState {
         return p.found > 0 || p.attempts > 0
       }).length,
       usedSandbox: !!sandbox.session || !!sandbox.staleSession || sandbox.transactions.length > 0 || sandbox.hits.length > 0 || sandbox.failedLogins > 0,
-      cases: cases.map((c) => ({ key: c.key, status: c.status })),
-      nextCaseNumber: workspace.nextCaseNumber[slug] ?? 1,
-      bugs: bugs.map((b) => ({ caseId: b.caseId, sessionId: b.sessionId })),
-      hasPlan: !!plan,
-      sessions: workspace.sessions.filter((s) => s.projectSlug === slug).map((s) => ({ status: s.status, notes: s.notes.length })),
-      foundDefects: assess(bugs, cases, sandbox.hits, workspace.hints, DEFAULT_SYSTEM.bugs).found,
-      exitCriteriaMet: !!plan && !!project && evaluatePlan(plan, project, cases, bugs).allMet,
+      projects,
     })
     return { ready, levels, current: currentLevel(levels), ...pathTotals(levels) }
-  }, [ready, workspace, sandbox, learn, seen])
+  }, [ready, workspace, sandbox, hits, learn, seen])
 }

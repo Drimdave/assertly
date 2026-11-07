@@ -18,7 +18,7 @@ export function SystemSwitcher({ onNavigate }: { onNavigate?: () => void }) {
   const section = pathname.match(/^\/app\/[^/]+\/(requirements|plan|cases|sessions|board|bugs|traceability|report)(?:\/|$)/)?.[1]
 
   return (
-    <div>
+    <div data-tour="switcher">
       <label htmlFor="system-switcher" className="block px-2 pb-1 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
         Practice system
       </label>

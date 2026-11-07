@@ -1,12 +1,13 @@
 "use client"
 
-import { useMemo } from "react"
+import { useEffect, useMemo } from "react"
 import Link from "next/link"
 
 import { Lozenge, type LozengeProps } from "@/components/ui/lozenge"
 import { MetricStrip } from "@/components/ui/metric-strip"
 import { STATUS_DOT } from "@/components/workspace/status-lozenge"
 import { useProject } from "@/hooks/use-workspace"
+import { markSeen } from "@/lib/onboarding/flags"
 import { SEVERITY_LABEL, type Severity } from "@/lib/sandbox/types"
 import type { CoverageState } from "@/lib/workspace/report"
 import { buildTraceability, type TraceBug, type TraceCase, type TraceSession } from "@/lib/workspace/traceability"
@@ -69,6 +70,11 @@ function Cell({ count, empty, children }: { count: number; empty: string; childr
 
 export function TraceabilityView({ projectSlug }: { projectSlug: string }) {
   const { ready, project, cases, state } = useProject(projectSlug)
+  const found = ready && !!project
+  // "Your path" has a step for opening this page, and opening it leaves no trace in the workspace
+  useEffect(() => {
+    if (found) markSeen("traceability")
+  }, [found])
   const trace = useMemo(() => (project ? buildTraceability(project, cases, state.sessions, state.bugs) : null), [project, cases, state.sessions, state.bugs])
 
   if (ready && !project) {

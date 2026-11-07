@@ -1,7 +1,7 @@
 import { expect, test, type Page } from "./fixtures"
 
 /**
- * "Your path" on the home page must tick from real actions, every one of the 13 steps, not just some. Each test does
+ * "Your path" on the home page must tick from real actions, every one of the 17 steps, not just some. Each test does
  * the thing through the real screens and then checks the home page.
  */
 const step = (page: Page, id: string) => page.locator(`[data-step="${id}"]`)
@@ -148,19 +148,19 @@ test.describe("every step of your path ticks from a real action", () => {
 
 test.describe("the path as a whole", () => {
   test("the count goes up one step at a time, and the first level collapses to Done when finished", async ({ page }) => {
-    await progress(page, "0 of 13")
+    await progress(page, "0 of 17")
 
     // Fundamentals: start one challenge
     await page.goto("/learn/email")
     await page.getByRole("textbox", { name: "Email Address" }).fill("userexample.com")
     await page.getByRole("button", { name: "Submit" }).click()
     await expect(page.getByText("1 of 6")).toBeVisible()
-    await progress(page, "1 of 13")
+    await progress(page, "1 of 17")
 
     // Requirements
     await page.goto("/app/novabank/requirements")
     await expect(page.getByRole("heading", { level: 2, name: "Login" })).toBeVisible()
-    await progress(page, "2 of 13")
+    await progress(page, "2 of 17")
 
     // NovaBank
     await page.goto("/sandbox/novabank")
@@ -168,7 +168,7 @@ test.describe("the path as a whole", () => {
     await page.getByLabel("Password").fill("Passw0rd!")
     await page.getByRole("button", { name: "Sign in" }).click()
     await expect(page.getByRole("heading", { name: "Accounts" })).toBeVisible()
-    await progress(page, "3 of 13")
+    await progress(page, "3 of 17")
 
     // A test case of your own
     await page.goto("/app/novabank/cases")
@@ -178,7 +178,7 @@ test.describe("the path as a whole", () => {
     await drawer.getByLabel("Step 1 action").fill("Open the transfer page")
     await drawer.getByRole("button", { name: "Create test case" }).click()
     await expect(drawer.getByText(/TC-013/).first()).toBeVisible()
-    await progress(page, "4 of 13")
+    await progress(page, "4 of 17")
 
     // A bug, which finishes level 1
     await page.goto("/app/novabank/bugs")
@@ -188,7 +188,7 @@ test.describe("the path as a whole", () => {
     await expect(page.getByRole("row", { name: /Negative amount is accepted/ })).toBeVisible()
 
     await page.goto("/app")
-    await expect(page.getByText("5 of 13 done")).toBeVisible()
+    await expect(page.getByText("5 of 17 done")).toBeVisible()
     const level1 = page.locator('[data-level="1"]')
     await expect(level1).toContainText("Done")
     await expect(level1).not.toHaveAttribute("open", "")
@@ -198,12 +198,12 @@ test.describe("the path as a whole", () => {
 
   test("an action in another tab shows up here without a reload", async ({ page, context }) => {
     await page.goto("/app")
-    await expect(page.getByText("0 of 13 done")).toBeVisible()
+    await expect(page.getByText("0 of 17 done")).toBeVisible()
     const other = await context.newPage()
     await other.goto("/app/novabank/plan")
     await other.getByRole("button", { name: "Create from template" }).click()
     await expect(other.getByLabel("Title")).toBeVisible()
-    await expect(page.getByText("1 of 13 done")).toBeVisible()
+    await expect(page.getByText("1 of 17 done")).toBeVisible()
     await expect(step(page, "plan")).toHaveAttribute("data-done", "true")
   })
 })

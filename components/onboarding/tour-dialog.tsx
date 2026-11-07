@@ -1,24 +1,28 @@
 "use client"
 
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { usePathname, useRouter } from "next/navigation"
 import * as DialogPrimitive from "@radix-ui/react-dialog"
-import { ArrowRight, Bug, ClipboardCheck, ClipboardList, Compass, FileText, Landmark, ListChecks, Route, type LucideIcon } from "lucide-react"
+import { ArrowRight, Bug, ClipboardCheck, ClipboardList, Compass, FileText, Landmark, Layers, ListChecks, Network, Route, type LucideIcon } from "lucide-react"
 
+import { projectFromPath } from "@/components/shell/nav-config"
 import { Button } from "@/components/ui/button"
 import { DialogDescription, DialogTitle } from "@/components/ui/dialog"
 import { closeTour, offerTourOnce, useOnboarding } from "@/lib/onboarding/flags"
-import { TOUR_STEPS } from "@/lib/onboarding/tour"
+import { buildTour } from "@/lib/onboarding/tour"
+import { DEFAULT_SYSTEM, getSystem } from "@/lib/systems/registry"
 import { cn } from "@/lib/utils"
 
 const ICON: Record<string, LucideIcon> = {
   welcome: Route,
+  systems: Layers,
   system: Landmark,
   requirements: ClipboardList,
   plan: ClipboardCheck,
   cases: ListChecks,
   explore: Compass,
   report: Bug,
+  traceability: Network,
   summary: FileText,
 }
 
@@ -92,6 +96,9 @@ export function TourDialog() {
 
 function TourBody() {
   const router = useRouter()
+  // About the system the tester is on: reopened from another system's page, it talks about that one
+  const system = getSystem(projectFromPath(usePathname())) ?? DEFAULT_SYSTEM
+  const steps = useMemo(() => buildTour(system), [system])
   const [index, setIndex] = useState(0)
   const [layout, setLayout] = useState<Layout>(() => ({
     spot: NOTHING(window.innerWidth, window.innerHeight),
@@ -101,8 +108,8 @@ function TourBody() {
     settled: false,
   }))
   const card = useRef<HTMLDivElement>(null)
-  const step = TOUR_STEPS[index]
-  const last = index === TOUR_STEPS.length - 1
+  const step = steps[index]
+  const last = index === steps.length - 1
   const Icon = ICON[step.id] ?? Route
 
   const measure = useCallback(() => {
@@ -151,7 +158,7 @@ function TourBody() {
     closeTour()
     router.push(href)
   }
-  const next = () => (last ? go(TOUR_STEPS[2].href ?? "/app") : setIndex((i) => i + 1))
+  const next = () => (last ? go(steps.find((x) => x.id === "requirements")?.href ?? "/app") : setIndex((i) => i + 1))
   const back = () => setIndex((i) => Math.max(0, i - 1))
 
   return (
@@ -195,10 +202,10 @@ function TourBody() {
       >
         <div className="flex items-center gap-3 border-b px-6 py-3">
           <p className="text-sm font-medium" aria-live="polite">
-            Step {index + 1} of {TOUR_STEPS.length}
+            Step {index + 1} of {steps.length}
           </p>
           <div className="flex flex-1 gap-1" aria-hidden>
-            {TOUR_STEPS.map((s, i) => (
+            {steps.map((s, i) => (
               <span key={s.id} className={cn("h-1 flex-1 rounded-full", i <= index ? "bg-primary" : "bg-neutral-soft")} />
             ))}
           </div>
