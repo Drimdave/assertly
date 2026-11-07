@@ -87,6 +87,8 @@ describe("shares", () => {
 })
 
 describe("on-disk database", () => {
+  // Starts two real Postgres instances (WebAssembly) on disk: about a second when idle and over ten on a busy machine,
+  // so the default five seconds made it fail on load without anything being wrong.
   it("creates its folder, and what is saved survives reopening it", async () => {
     const { mkdtempSync, rmSync } = await import("node:fs")
     const { tmpdir } = await import("node:os")
@@ -104,5 +106,5 @@ describe("on-disk database", () => {
     } finally {
       rmSync(root, { recursive: true, force: true })
     }
-  })
+  }, 30_000)
 })
