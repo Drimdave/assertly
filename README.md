@@ -124,3 +124,7 @@ Tokens, density and component rules come from [docs/design/mockup-v4.html](docs/
 - No email verification or password reset yet: both need an email service, which is not set up. Until then, a forgotten password cannot be recovered.
 - GitHub sign-in is wired but untested without real OAuth credentials.
 - Conflicts between two devices editing at once are resolved by taking the newer saved copy; the other device is told it was updated.
+
+## License
+
+Released under the [MIT license](LICENSE).

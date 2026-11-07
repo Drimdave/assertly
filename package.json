@@ -2,6 +2,7 @@
   "name": "assertly",
   "version": "0.1.0",
   "private": true,
+  "license": "MIT",
   "description": "A hands-on QA practice platform: plan, execute, report and find seeded bugs in realistic systems.",
   "engines": {
     "node": ">=20.9.0"
