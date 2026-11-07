@@ -4,6 +4,8 @@ A hands-on QA practice platform. Testers work the whole job (requirement, test p
 
 > **Status: Phases 0 to 4 are done; Phase 5 (launch) is in progress.** The workspace, the NovaBank sandbox with scored hidden defects, accounts, saving and share links work today. The test plan editor and exploratory sessions work; four practice systems are playable, see [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
+**Live: https://assertly.vercel.app** (free hosting: Vercel and Neon).
+
 ![Assertly: a headline, and the workspace underneath it](docs/screenshots/landing.png)
 
 ## Screenshots
