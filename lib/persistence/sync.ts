@@ -122,7 +122,7 @@ function adopt(doc: RemoteDoc) {
   if (currentUser) writeMeta({ userId: currentUser, rev, dirty: false })
 }
 
-async function push(keepalive = false): Promise<void> {
+async function push(keepalive = false, retry = false): Promise<void> {
   if (timer) {
     clearTimeout(timer)
     timer = null
@@ -143,6 +143,15 @@ async function push(keepalive = false): Promise<void> {
       if (currentUser) writeMeta({ userId: currentUser, rev, dirty: serialize() !== current })
       setStatus("saved")
     } else if (res.status === 409) {
+      // Refused for being behind. If every revision it is behind by is a save this browser started itself (typically one
+      // from a page it has since left, landing after this page read the server), nobody else has saved: this copy is the
+      // newer one, and the right answer is to send it again on top of theirs, not to replace it with theirs. A last-gasp
+      // save cannot wait for an answer, and a second refusal is not ours to explain.
+      const ownBefore = Math.max(0, (readMeta()?.sent ?? 1) - 1) // this attempt was counted before it was sent
+      if (!retry && !keepalive && res.json.rev > rev && res.json.rev <= rev + ownBefore) {
+        rev = res.json.rev
+        return push(false, true)
+      }
       const same = remoteForm(res.json) === current
       adopt(res.json)
       if (!same) notify("Updated from another device.")
@@ -258,6 +267,9 @@ export async function startSync(userId: string, onNotice: (message: string) => v
     document.removeEventListener("visibilitychange", onHide)
     window.removeEventListener("pagehide", onPageHide)
   }
+  // The first save above can take a while, and nothing was listening for edits while it was in flight: whatever changed
+  // in that time is unsent, and would stay so until something else changed
+  schedule()
 }
 
 export function stopSync() {

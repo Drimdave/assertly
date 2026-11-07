@@ -229,6 +229,92 @@ test.describe("accounts and saving", () => {
     expect(await page.evaluate(() => localStorage.getItem("assertly:guest-backup:v1"))).toBeNull() // nothing was replaced
   })
 
+  test("a save refused only because an earlier save of its own landed first is sent again, not replaced by the older copy", async ({ page }) => {
+    await signUp(page)
+    await page.goto("/app/novabank/cases")
+    await expect(page.getByRole("row")).toHaveCount(13)
+    await expect(page.getByRole("status").filter({ hasText: "All changes saved" })).toBeVisible()
+    const before = await (await page.request.get("/api/workspace")).json()
+
+    // What a page leaves behind when it is replaced with a save in flight: this browser holds a newer copy marked unsent,
+    // and one save it started has not been answered
+    await page.evaluate(() => {
+      const workspace = JSON.parse(localStorage.getItem("assertly:workspace:v1")!)
+      workspace.cases.find((c: { key: string; projectSlug: string }) => c.projectSlug === "novabank" && c.key === "TC-010").status = "passed"
+      localStorage.setItem("assertly:workspace:v1", JSON.stringify(workspace))
+      const meta = JSON.parse(localStorage.getItem("assertly:sync:v1")!)
+      localStorage.setItem("assertly:sync:v1", JSON.stringify({ ...meta, dirty: true, sent: 1 }))
+    })
+
+    // That unanswered save then lands in the instant between the new page reading the server and sending its own, so the
+    // new page's save is refused for being one revision behind, by a revision that was this browser's own
+    let landed = false
+    await page.route("**/api/workspace", async (route) => {
+      if (route.request().method() === "PUT" && !landed) {
+        landed = true
+        const earlier = await page.request.put("/api/workspace", { data: { baseRev: before.rev, workspace: before.workspace, sandbox: before.sandbox } })
+        expect(earlier.status()).toBe(200)
+      }
+      await route.continue()
+    })
+    await page.reload()
+
+    await expect(page.getByRole("row", { name: /TC-010/ })).toContainText("Passed")
+    await expect(page.getByRole("status").filter({ hasText: "All changes saved" })).toBeVisible()
+    await expect
+      .poll(async () => {
+        const doc = await (await page.request.get("/api/workspace")).json()
+        return doc.workspace.cases.find((c: { key: string; projectSlug: string }) => c.projectSlug === "novabank" && c.key === "TC-010").status
+      })
+      .toBe("passed")
+    expect(landed).toBe(true)
+  })
+
+  test("a change made while the first save of a page is still in flight is sent too", async ({ page }) => {
+    await signUp(page)
+    await page.goto("/app/novabank/cases")
+    await expect(page.getByRole("row")).toHaveCount(13)
+    await expect(page.getByRole("status").filter({ hasText: "All changes saved" })).toBeVisible()
+
+    // Unsent work from an earlier visit, so the new page opens by sending it
+    await page.evaluate(() => {
+      const workspace = JSON.parse(localStorage.getItem("assertly:workspace:v1")!)
+      workspace.cases.find((c: { key: string; projectSlug: string }) => c.projectSlug === "novabank" && c.key === "TC-010").status = "passed"
+      localStorage.setItem("assertly:workspace:v1", JSON.stringify(workspace))
+      const meta = JSON.parse(localStorage.getItem("assertly:sync:v1")!)
+      localStorage.setItem("assertly:sync:v1", JSON.stringify({ ...meta, dirty: true }))
+    })
+
+    // Hold that first save open, as a slow connection would
+    let release!: () => void
+    const gate = new Promise<void>((resolve) => (release = resolve))
+    let held = false
+    await page.route("**/api/workspace", async (route) => {
+      if (route.request().method() === "PUT" && !held) {
+        held = true
+        await gate
+      }
+      await route.continue()
+    })
+    await page.reload()
+    await expect.poll(() => held).toBe(true)
+
+    // Change something else while it is in flight
+    await page.getByRole("row", { name: /TC-011/ }).click()
+    await page.getByRole("dialog").getByRole("radio", { name: "Passed" }).click()
+    await expect(page.getByRole("dialog").getByRole("radio", { name: "Passed" })).toBeChecked()
+    release()
+
+    // Both reach the server without anything else being done
+    await expect
+      .poll(async () => {
+        const doc = await (await page.request.get("/api/workspace")).json()
+        const status = (key: string) => doc.workspace.cases.find((c: { key: string; projectSlug: string }) => c.projectSlug === "novabank" && c.key === key).status
+        return [status("TC-010"), status("TC-011")]
+      })
+      .toEqual(["passed", "passed"])
+  })
+
   test("signing out clears this browser's copy of the work", async ({ page }) => {
     await signUp(page)
     await passFirstCase(page, { signedIn: true })
