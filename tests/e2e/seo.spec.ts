@@ -102,7 +102,9 @@ test.describe("the visit counter", () => {
     page.on("console", (m) => m.type() === "error" && errors.push(m.text()))
     await page.goto("/")
     await page.waitForLoadState("networkidle")
-    await expect(page.locator('script[src*="_vercel"], script[src*="vercel-scripts"]')).toHaveCount(0)
+    // Recognised by what it is (the package marks its script) and, as well, by the addresses it uses: on Vercel its address
+    // is a random first-party path, locally it is /_vercel/insights
+    await expect(page.locator('script[data-sdkn^="@vercel/analytics"], script[src*="_vercel"], script[src*="vercel-scripts"]')).toHaveCount(0)
     expect(requested.filter((u) => /_vercel|vercel-scripts/.test(u))).toEqual([])
     expect(errors).toEqual([])
   })
