@@ -9,7 +9,7 @@ import { StatusLozenge } from "@/components/workspace/status-lozenge"
 import { cn } from "@/lib/utils"
 import type { PlanEvaluation } from "@/lib/workspace/plan"
 import type { SessionRow } from "@/lib/workspace/sessions"
-import type { CoverageState, TestReport, VerdictLevel } from "@/lib/workspace/report"
+import { COVERAGE_NOTE, type CoverageState, type TestReport, type VerdictLevel } from "@/lib/workspace/report"
 import { STATUSES, STATUS_LABEL, type Status } from "@/lib/workspace/types"
 
 const VERDICT_BORDER: Record<VerdictLevel, string> = {
@@ -43,13 +43,16 @@ const BAR: Record<Status, string> = {
   notrun: "bg-muted-foreground/40",
 }
 
-function Section({ index, title, children }: { index: number; title: string; children: React.ReactNode }) {
+function Section({ index, title, note, children }: { index: number; title: string; note?: string; children: React.ReactNode }) {
   return (
     <section className="space-y-3 print:break-inside-avoid">
-      <h2 className="flex items-baseline gap-2 text-heading-sm">
-        <span className="font-mono text-xs font-normal text-muted-foreground">{index}</span>
-        {title}
-      </h2>
+      <div className="space-y-0.5">
+        <h2 className="flex items-baseline gap-2 text-heading-sm">
+          <span className="font-mono text-xs font-normal text-muted-foreground">{index}</span>
+          {title}
+        </h2>
+        {note && <p className="pl-5 text-sm text-muted-foreground">{note}</p>}
+      </div>
       {children}
     </section>
   )
@@ -110,7 +113,7 @@ export function ReportDocument({
     </Section>
 
     {plan && (
-      <Section index={next()} title="Test plan and exit criteria">
+      <Section index={next()} title="Test plan and exit criteria" note="Exit criteria are the limits you set in your plan for when testing may stop. Each one is checked against your real results.">
         <PlanSummary plan={plan} />
       </Section>
     )}
@@ -138,7 +141,7 @@ export function ReportDocument({
       </div>
     </Section>
 
-    <Section index={next()} title="Requirement coverage">
+    <Section index={next()} title="Requirement coverage" note={COVERAGE_NOTE}>
       <div className="overflow-hidden rounded-lg border">
         <Table>
           <TableHeader>
@@ -236,7 +239,7 @@ export function ReportDocument({
     </Section>
 
     {assessment && (
-      <Section index={next()} title="Hidden defect assessment">
+      <Section index={next()} title="Hidden defect assessment" note="Each system hides defects on purpose. A report earns points only if it describes a defect you triggered, and its severity and how clearly it is written decide how many.">
         {assessment}
       </Section>
     )}

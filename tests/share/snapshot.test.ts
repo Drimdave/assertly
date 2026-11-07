@@ -86,7 +86,7 @@ describe("share snapshot", () => {
     w = reduce(w, { type: "session/update", at: minutes(26), id, patch: { summary: "Done" } })
     const snap = buildShareSnapshot({ workspace: w, sandboxes: { novabank: sandbox }, projectSlug: "novabank", tester: "Ada", now: new Date(minutes(60)) })!
     expect(snap.sessions).toEqual([
-      expect.objectContaining({ key: "ES-001", status: "ended", spentMinutes: 25, timeboxMinutes: 30, questions: 1, bugs: 0, summary: "Done", area: "REQ-02 Funds transfer" }),
+      expect.objectContaining({ key: "ES-001", status: "ended", spentMinutes: 25, timeboxMinutes: 30, questions: 1, bugs: 0, summary: "Done", requirement: "REQ-02 Funds transfer" }),
     ])
   })
 

@@ -1,6 +1,6 @@
 import { SessionStatusLozenge } from "@/components/workspace/session-parts"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import type { SessionRow } from "@/lib/workspace/sessions"
+import { rowRequirement, type SessionRow } from "@/lib/workspace/sessions"
 
 const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`
 
@@ -32,7 +32,7 @@ export function SessionsSummary({ rows }: { rows: SessionRow[] }) {
                   <TableCell>
                     <span className="mr-2 font-mono text-xs text-muted-foreground">{r.key}</span>
                     <span className="font-medium">{r.charter}</span>
-                    {r.area && <p className="text-xs text-muted-foreground">{r.area}</p>}
+                    {rowRequirement(r) && <p className="text-xs text-muted-foreground">{rowRequirement(r)}</p>}
                     {r.summary && <p className="mt-1 text-sm text-muted-foreground">Debrief: {r.summary}</p>}
                   </TableCell>
                   <TableCell>

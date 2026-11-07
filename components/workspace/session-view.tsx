@@ -202,17 +202,17 @@ function PlanEditor({ session, project }: { session: ExploratorySession; project
         </div>
         <div className="flex flex-wrap gap-6">
           <div className="space-y-1.5">
-            <Label htmlFor="session-area">Area</Label>
+            <Label htmlFor="session-requirement">Requirement</Label>
             <Controller
               control={control}
               name="requirementKey"
               render={({ field }) => (
                 <Select value={field.value || "none"} onValueChange={(v) => field.onChange(v === "none" ? "" : v)}>
-                  <SelectTrigger id="session-area" aria-label="Area" className="w-auto min-w-56">
+                  <SelectTrigger id="session-requirement" aria-label="Requirement" className="w-auto min-w-56">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="none">Anywhere</SelectItem>
+                    <SelectItem value="none">No requirement</SelectItem>
                     {project.requirements.map((r) => (
                       <SelectItem key={r.key} value={r.key}>
                         {r.key} · {r.title}

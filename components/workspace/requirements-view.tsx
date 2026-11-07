@@ -48,7 +48,7 @@ export function RequirementsView({ projectSlug }: { projectSlug: string }) {
         <div>
           <h1 className="text-heading-lg tracking-tight">Requirements</h1>
           <p className="text-sm text-muted-foreground">
-            What {project?.name ?? "the system"} is supposed to do. Test against this, not against what you see on screen.
+            What {project?.name ?? "the system"} is supposed to do. Test against this, not against what you see on screen. Under each requirement are its acceptance criteria: the statements that must be true for it to count as met.
           </p>
         </div>
         <Button asChild variant="outline">

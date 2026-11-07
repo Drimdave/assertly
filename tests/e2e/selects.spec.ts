@@ -64,10 +64,10 @@ const PAGE_LEVEL: { name: string; open: (page: Page) => Promise<void> }[] = [
     },
   },
   {
-    name: "a session: the area",
+    name: "a session: the requirement",
     open: async (page) => {
       await planSession(page)
-      await page.getByRole("combobox", { name: "Area" }).click()
+      await page.getByRole("combobox", { name: "Requirement" }).click()
     },
   },
 ]

@@ -144,11 +144,14 @@ interface CaseFormProps {
 }
 
 /** Label column + value column, so every property lines up the same way. */
-function Property({ label, children }: { label: string; children: React.ReactNode }) {
+function Property({ label, note, children }: { label: string; note?: string; children: React.ReactNode }) {
   return (
     <>
       <dt className="text-sm leading-8 text-muted-foreground">{label}</dt>
-      <dd className="min-w-0">{children}</dd>
+      <dd className="min-w-0">
+        {children}
+        {note && <p className="mt-0.5 text-xs text-muted-foreground">{note}</p>}
+      </dd>
     </>
   )
 }
@@ -285,7 +288,7 @@ function CaseForm({ project, testCase, activity, onDirtyChange, onOpen, onClose 
             )}
           </Property>
 
-          <Property label="Priority">
+          <Property label="Priority" note="How important it is to run this check. Not the same as a bug's severity.">
             <Controller
               control={control}
               name="priority"
@@ -311,7 +314,7 @@ function CaseForm({ project, testCase, activity, onDirtyChange, onOpen, onClose 
             />
           </Property>
 
-          <Property label="Requirement">
+          <Property label="Requirement" note="What this check proves. Every test case should trace to one.">
             <Controller
               control={control}
               name="requirementKey"

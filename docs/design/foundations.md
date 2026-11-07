@@ -71,3 +71,13 @@ Rules:
 - One solid blue button per screen or dialog. Two blue buttons side by side means the page has not decided what matters.
 - Color is never the only signal: red actions also say what they do in words (Delete, Discard), and meet 4.5:1 contrast in light and dark (5.6:1 and 7.6:1).
 - Red text next to a field is an error, not a button: it states what to fix.
+
+## Explaining terms
+
+This is a tool for learning a craft, so some words on screen will be new to the reader (severity, priority, exit criteria, coverage, acceptance criteria). They are explained where they appear.
+
+- **A visible line of text beside the control**, in `text-xs text-muted-foreground`, one sentence or two. Not a tooltip: a tooltip cannot be read on a phone or without a mouse, and it disappears when the pointer moves. If it is worth saying, it is worth showing.
+- **Say what it is and what it is for**, in plain words, using the screen's own terms ("Priority: how important it is to run this check. Not the same as a bug's severity"). Where two words are easy to confuse, say which is which.
+- **One word for one thing, everywhere.** The same idea is not "Area" in one form and "Requirement" in the next: the label, the table heading, the empty option ("No requirement") and the notes all use the same word.
+- **Wire the note to the control** with `aria-describedby` where the control is a lone field, so a screen reader hears it with the label. Shared wording (the coverage legend) lives in one exported string so two pages cannot drift apart.
+- **Keep it short enough to be skimmed.** A note that needs a paragraph belongs in the Fundamentals section, with a link.

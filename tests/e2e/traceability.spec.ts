@@ -104,7 +104,7 @@ test.describe("the traceability matrix", () => {
     await page.getByRole("button", { name: "New session" }).first().click()
     const drawer = page.getByRole("dialog")
     await drawer.getByLabel("Charter").fill("Explore transfers with large amounts to discover how the limits behave")
-    await drawer.getByRole("combobox", { name: "Area" }).click()
+    await drawer.getByRole("combobox", { name: "Requirement" }).click()
     await page.getByRole("option", { name: /REQ-03/ }).click()
     await drawer.getByRole("button", { name: "Create session" }).click()
     await expect(page).toHaveURL(/\/sessions\/s\d+$/)

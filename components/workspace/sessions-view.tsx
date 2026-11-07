@@ -27,7 +27,7 @@ export function SessionsView({ projectSlug }: { projectSlug: string }) {
   const spentMinutes = Math.round(sessions.reduce((sum, s) => sum + elapsedMs(s, now), 0) / 60_000)
   const notes = sessions.reduce((n, s) => n + s.notes.length, 0)
   const bugs = state.bugs.filter((b) => sessions.some((s) => s.id === b.sessionId)).length
-  const areaOf = (key: string | null) => project?.requirements.find((r) => r.key === key)
+  const requirementOf = (key: string | null) => project?.requirements.find((r) => r.key === key)
 
   if (ready && !project) {
     return (
@@ -67,7 +67,7 @@ export function SessionsView({ projectSlug }: { projectSlug: string }) {
             <TableRow className="hover:bg-transparent">
               <TableHead>Key</TableHead>
               <TableHead>Charter</TableHead>
-              <TableHead>Area</TableHead>
+              <TableHead>Requirement</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Time</TableHead>
               <TableHead className="text-right">Notes</TableHead>
@@ -99,7 +99,7 @@ export function SessionsView({ projectSlug }: { projectSlug: string }) {
             )}
             {ready &&
               sessions.map((s) => {
-                const area = areaOf(s.requirementKey)
+                const requirement = requirementOf(s.requirementKey)
                 return (
                   <TableRow key={s.id} data-session-id={s.id} className="cursor-pointer" onClick={() => router.push(`/app/${projectSlug}/sessions/${s.id}`)}>
                     <TableCell className="whitespace-nowrap font-mono text-xs text-muted-foreground">{s.key}</TableCell>
@@ -108,7 +108,7 @@ export function SessionsView({ projectSlug }: { projectSlug: string }) {
                         {s.charter}
                       </Link>
                     </TableCell>
-                    <TableCell className="whitespace-nowrap text-muted-foreground">{area ? `${area.key} ${area.title}` : "Anywhere"}</TableCell>
+                    <TableCell className="whitespace-nowrap text-muted-foreground">{requirement ? `${requirement.key} ${requirement.title}` : "None"}</TableCell>
                     <TableCell>
                       <SessionStatusLozenge status={s.status} />
                     </TableCell>

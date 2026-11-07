@@ -75,17 +75,17 @@ function NewSessionForm({ project, onClose }: { project: Project; onClose: () =>
         </div>
 
         <div className="space-y-1.5">
-          <Label htmlFor="area">Area (optional)</Label>
+          <Label htmlFor="requirement">Requirement (optional)</Label>
           <Controller
             control={control}
             name="requirementKey"
             render={({ field }) => (
               <Select value={field.value || "none"} onValueChange={(v) => field.onChange(v === "none" ? "" : v)}>
-                <SelectTrigger id="area" aria-label="Area" className="w-full">
+                <SelectTrigger id="requirement" aria-label="Requirement" aria-describedby="requirement-note" className="w-full">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="none">Anywhere</SelectItem>
+                  <SelectItem value="none">No requirement</SelectItem>
                   {project.requirements.map((r) => (
                     <SelectItem key={r.key} value={r.key}>
                       {r.key} · {r.title}
@@ -95,6 +95,7 @@ function NewSessionForm({ project, onClose }: { project: Project; onClose: () =>
               </Select>
             )}
           />
+          <p id="requirement-note" className="text-xs text-muted-foreground">The requirement you will explore. It puts the session in the traceability matrix.</p>
         </div>
 
         <Controller

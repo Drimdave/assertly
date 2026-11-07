@@ -6,7 +6,7 @@ import { toBugFormValues, toBugInput } from "@/lib/workspace/bug-schema"
 import { migrateWorkspace } from "@/lib/workspace/migrate"
 import { reduce } from "@/lib/workspace/reducer"
 import { createSeedState, NOVABANK } from "@/lib/workspace/seed"
-import { bugsInSession, elapsedMs, formatClock, noteCounts, sessionRows, timeboxState } from "@/lib/workspace/sessions"
+import { bugsInSession, elapsedMs, formatClock, noteCounts, rowRequirement, sessionRows, timeboxState, type SessionRow } from "@/lib/workspace/sessions"
 import type { BugReport, ExploratorySession, SessionInput, WorkspaceState } from "@/lib/workspace/types"
 
 const T0 = "2026-05-01T10:00:00.000Z"
@@ -130,7 +130,7 @@ describe("summaries", () => {
     expect(bugsInSession({ id }, bugs).map((b) => b.id)).toEqual(["b1"])
   })
 
-  it("builds a report row with time spent, area and counts", () => {
+  it("builds a report row with time spent, requirement and counts", () => {
     const start = running()
     const id = start.id
     let state = start.state
@@ -138,7 +138,7 @@ describe("summaries", () => {
     state = reduce(state, { type: "session/end", at: at(27), id })
     state = reduce(state, { type: "session/update", at: at(28), id, patch: { summary: "Good coverage" } })
     const [row] = sessionRows(state.sessions, [], NOVABANK, new Date(at(60)).getTime())
-    expect(row).toMatchObject({ key: "ES-001", area: "REQ-02 Funds transfer", status: "ended", timeboxMinutes: 30, spentMinutes: 27, risks: 1, bugs: 0, summary: "Good coverage" })
+    expect(row).toMatchObject({ key: "ES-001", requirement: "REQ-02 Funds transfer", status: "ended", timeboxMinutes: 30, spentMinutes: 27, risks: 1, bugs: 0, summary: "Good coverage" })
   })
 })
 
@@ -181,5 +181,24 @@ describe("bug form and sessions", () => {
     expect(toBugFormValues(bug).sessionId).toBe("")
     expect(toBugInput(toBugFormValues(bug)).sessionId).toBeNull()
     expect(toBugInput({ ...toBugFormValues(bug), sessionId: "s5" }).sessionId).toBe("s5")
+  })
+})
+
+describe("a session row's requirement, in links shared before the rename", () => {
+  const row = (extra: Record<string, unknown>) => ({ key: "ES-001", charter: "Explore", status: "ended", timeboxMinutes: 30, spentMinutes: 25, notes: 0, questions: 0, risks: 0, ideas: 0, bugs: 0, summary: "", ...extra }) as unknown as SessionRow
+
+  it("reads the current key", () => {
+    expect(rowRequirement(row({ requirement: "REQ-02 Funds transfer" }))).toBe("REQ-02 Funds transfer")
+    expect(rowRequirement(row({ requirement: null }))).toBeNull()
+  })
+
+  it("reads the old key from a stored snapshot, which is never rewritten", () => {
+    const stored = JSON.parse(JSON.stringify(row({ area: "REQ-02 Funds transfer" }))) as SessionRow
+    expect(rowRequirement(stored)).toBe("REQ-02 Funds transfer")
+  })
+
+  it("is null when the old snapshot had no area either", () => {
+    expect(rowRequirement(row({ area: null }))).toBeNull()
+    expect(rowRequirement(row({}))).toBeNull()
   })
 })

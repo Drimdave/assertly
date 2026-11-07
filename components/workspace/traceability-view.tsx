@@ -9,7 +9,7 @@ import { STATUS_DOT } from "@/components/workspace/status-lozenge"
 import { useProject } from "@/hooks/use-workspace"
 import { markSeen } from "@/lib/onboarding/flags"
 import { SEVERITY_LABEL, type Severity } from "@/lib/sandbox/types"
-import type { CoverageState } from "@/lib/workspace/report"
+import { COVERAGE_NOTE, type CoverageState } from "@/lib/workspace/report"
 import { buildTraceability, type TraceBug, type TraceCase, type TraceSession } from "@/lib/workspace/traceability"
 import { SESSION_STATUS_LABEL, STATUS_LABEL, type SessionStatus } from "@/lib/workspace/types"
 import { cn } from "@/lib/utils"
@@ -185,12 +185,15 @@ export function TraceabilityView({ projectSlug }: { projectSlug: string }) {
               </tbody>
             </table>
           </div>
+          <p data-testid="coverage-note" className="text-xs text-muted-foreground">
+            {COVERAGE_NOTE}
+          </p>
 
           {unlinkedCount > 0 && (
             <section aria-label="Not traced to a requirement" className="space-y-4 rounded-lg border p-4">
               <div>
                 <h2 className="text-heading-xs">Not traced to a requirement</h2>
-                <p className="text-sm text-muted-foreground">These count toward no requirement. Link a test case to a requirement, or give a session an area, and a bug follows the test case or session it was found in.</p>
+                <p className="text-sm text-muted-foreground">These count toward no requirement. Link a test case to a requirement, or choose a requirement for a session, and a bug follows the test case or session it was found in.</p>
               </div>
               {trace.unlinked.cases.length > 0 && (
                 <div data-unlinked="cases" className="space-y-1.5">

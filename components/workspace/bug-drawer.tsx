@@ -175,8 +175,8 @@ function BugForm({ project, bug, cases, sessions, initial, onDirtyChange, onClos
           <Input id="bug-title" autoFocus={isNew} aria-invalid={!!errors.title} placeholder="e.g. Transfer to savings does not update the savings balance" {...register("title")} />
         </Field>
 
-        <div className="grid gap-5 sm:grid-cols-2">
-          <Field label="Severity">
+        <div className="grid items-start gap-5 sm:grid-cols-2">
+          <Field label="Severity" hint="How badly it hurts. Critical: money, data or security. High: a main feature fails. Medium: there is a workaround. Low: minor or cosmetic.">
             <Controller
               control={control}
               name="severity"
@@ -198,7 +198,7 @@ function BugForm({ project, bug, cases, sessions, initial, onDirtyChange, onClos
               )}
             />
           </Field>
-          <Field label="Found by test case">
+          <Field label="Found by test case" hint="Shows which check caught it, and ties it to a requirement.">
             <Controller
               control={control}
               name="caseId"
@@ -222,7 +222,7 @@ function BugForm({ project, bug, cases, sessions, initial, onDirtyChange, onClos
         </div>
 
         {sessions.length > 0 && (
-          <Field label="Found in exploratory session">
+          <Field label="Found in exploratory session" hint="Use this if you found it while exploring.">
             <Controller
               control={control}
               name="sessionId"
@@ -275,7 +275,7 @@ function BugForm({ project, bug, cases, sessions, initial, onDirtyChange, onClos
         <Field label="Actual result" htmlFor="bug-actual" error={errors.actual?.message}>
           <Textarea id="bug-actual" rows={2} aria-invalid={!!errors.actual} {...register("actual")} />
         </Field>
-        <Field label="Environment" htmlFor="bug-env" error={errors.environment?.message}>
+        <Field label="Environment" htmlFor="bug-env" error={errors.environment?.message} hint="The browser and device you used, so a developer can reproduce it.">
           <Input id="bug-env" {...register("environment")} />
         </Field>
       </div>

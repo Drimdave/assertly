@@ -45,7 +45,8 @@ export function bugsInSession(session: Pick<ExploratorySession, "id">, bugs: Bug
 export interface SessionRow {
   key: string
   charter: string
-  area: string | null
+  /** The requirement the session is about, as "REQ-02 Funds transfer", or null. */
+  requirement: string | null
   status: ExploratorySession["status"]
   timeboxMinutes: number
   /** Minutes actually spent, rounded; null if it never started. */
@@ -58,6 +59,14 @@ export interface SessionRow {
   summary: string
 }
 
+/**
+ * The requirement a session row names. Share links made before the field was renamed from "area" were stored with the
+ * old key, and a stored snapshot is never rewritten, so both are read.
+ */
+export function rowRequirement(row: SessionRow): string | null {
+  return row.requirement ?? (row as { area?: string | null }).area ?? null
+}
+
 export function sessionRows(sessions: ExploratorySession[], bugs: BugReport[], project: Project, nowMs: number): SessionRow[] {
   return sessions
     .slice()
@@ -68,7 +77,7 @@ export function sessionRows(sessions: ExploratorySession[], bugs: BugReport[], p
       return {
         key: s.key,
         charter: s.charter,
-        area: req ? `${req.key} ${req.title}` : null,
+        requirement: req ? `${req.key} ${req.title}` : null,
         status: s.status,
         timeboxMinutes: s.timeboxMinutes,
         spentMinutes: s.startedAt ? Math.round(elapsedMs(s, nowMs) / 60_000) : null,

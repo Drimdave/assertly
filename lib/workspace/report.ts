@@ -4,6 +4,10 @@ import { PRIORITIES, STATUSES, type Priority, type Project, type Requirement, ty
 export type VerdictLevel = "not_started" | "not_ready" | "incomplete" | "ready"
 export type CoverageState = "no_cases" | "not_run" | "partial" | "passing" | "failing"
 
+/** What the coverage labels mean, in words a newcomer can use: the summary and the traceability matrix both show it. */
+export const COVERAGE_NOTE =
+  "Passing: every test case passed. Partial: some passed and the rest are not run yet. Failing: at least one failed. Not run: none has been run. No coverage: the requirement has no test cases."
+
 export interface Verdict {
   level: VerdictLevel
   headline: string
