@@ -3,6 +3,8 @@
 import { useEffect, useRef } from "react"
 import { toast } from "sonner"
 
+import { setAccountPending } from "@/lib/onboarding/flags"
+import { startOnboardingSync } from "@/lib/onboarding/account-sync"
 import { startSync, stopSync } from "@/lib/persistence/sync"
 import { wipeLocalCopy } from "@/lib/persistence/wipe"
 import { useSession } from "@/lib/auth-client"
@@ -19,6 +21,7 @@ export function SyncController() {
   useEffect(() => {
     if (isPending) return
     if (!userId) {
+      setAccountPending(false) // a guest: there is no account to wait for
       if (wasSignedIn.current) {
         wasSignedIn.current = false
         wipeLocalCopy()
@@ -30,9 +33,11 @@ export function SyncController() {
     void startSync(userId, (message) => {
       if (!cancelled) toast(message)
     })
+    const stopOnboarding = startOnboardingSync()
     return () => {
       cancelled = true
       stopSync()
+      stopOnboarding()
     }
   }, [userId, isPending])
 

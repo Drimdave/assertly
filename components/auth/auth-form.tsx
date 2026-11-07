@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { nameField, newPasswordField } from "@/lib/account/schemas"
 import { authClient } from "@/lib/auth-client"
+import { setAccountPending } from "@/lib/onboarding/flags"
 
 const signInSchema = z.object({
   email: z.string().trim().email("Enter a valid email address"),
@@ -50,6 +51,9 @@ export function AuthForm({ mode, next, github, forgot = false, notice, initialEr
       setError(res.error.message ?? (isSignUp ? "Could not create the account." : "Incorrect email or password."))
       return
     }
+    // The page moves on a moment before the app notices who is signed in; hold the welcome tour until it has, and until the
+    // account has said whether it was already seen, or it would open and then have to close again
+    setAccountPending(true)
     router.push(target)
     router.refresh()
   })

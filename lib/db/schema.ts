@@ -1,3 +1,4 @@
+import { sql } from "drizzle-orm"
 import { boolean, index, integer, jsonb, pgTable, text, timestamp } from "drizzle-orm/pg-core"
 
 /* Better Auth's tables. The shape is dictated by the library; do not rename columns. */
@@ -92,3 +93,20 @@ export const share = pgTable(
   },
   (t) => [index("share_user_id_idx").on(t.userId)],
 )
+
+/**
+ * What a person has done that is not part of their work: whether they have dismissed the welcome tour, and which pages
+ * they have opened (for "Your path"). Kept apart from `workspace_doc` on purpose: that row is saved as a whole with a
+ * revision number, so recording a page view in it would bump the revision on every visit and clobber Undo. These two are
+ * merge-only (a flag once set stays set, a list only grows), so they never conflict and need no revision: every write is
+ * folded into what is there, in one statement.
+ */
+export const onboardingState = pgTable("onboarding_state", {
+  userId: text("user_id")
+    .primaryKey()
+    .references(() => user.id, { onDelete: "cascade" }),
+  tourDone: boolean("tour_done").notNull().default(false),
+  seen: jsonb("seen").$type<string[]>().notNull().default(sql`'[]'::jsonb`),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+})
+
