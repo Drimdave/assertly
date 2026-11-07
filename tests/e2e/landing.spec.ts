@@ -149,6 +149,18 @@ test.describe("the landing page", () => {
     await expect(page.getByRole("heading", { name: "Transfer alert is sent twice" })).toHaveCount(0)
   })
 
+  test("the Sample label is on the picture where it can be seen, not under the bug panel that covers the end of its title bar", async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 900 })
+    await page.goto("/")
+    const frame = page.locator('[aria-hidden="true"]', { hasText: "NovaBank Transfers" }).first()
+    const label = (await frame.getByText("Sample", { exact: true }).boundingBox())!
+    const panel = (await frame.locator("aside").boundingBox())!
+    const window = (await frame.locator("div").first().boundingBox())!
+    expect(label.x + label.width).toBeLessThanOrEqual(panel.x) // clear of the panel, which is drawn over the right-hand end
+    expect(label.x).toBeGreaterThanOrEqual(window.x)
+    expect(label.y).toBeGreaterThanOrEqual(window.y)
+  })
+
   test("never names a hidden defect: the page is public and the defects are the point", async ({ page }) => {
     await page.goto("/")
     const text = (await page.locator("body").innerText()).toLowerCase()

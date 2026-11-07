@@ -4,6 +4,35 @@ A hands-on QA practice platform. Testers work the whole job (requirement, test p
 
 > **Status: Phases 0 to 4 are done; Phase 5 (launch) is in progress.** The workspace, the NovaBank sandbox with scored hidden defects, accounts, saving and share links work today. The test plan editor and exploratory sessions work; four practice systems are playable, see [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
+![Assertly: a headline, and the workspace underneath it](docs/screenshots/landing.png)
+
+## Screenshots
+
+NovaBank after an afternoon of testing: three of its ten hidden defects found and reported, two more triggered but not yet reported, a plan, an exploratory session, and a look at the other three systems. The pictures are made by `npm run screenshots`, which tells that story through the real screens and checks it before taking them.
+
+<table>
+<tr>
+<td width="50%"><img src="docs/screenshots/board.png" alt="The board: test cases as columns by status, with priority and tags"><br><sub><b>Board.</b> Test cases as columns by status. Drag a card, or use the keyboard.</sub></td>
+<td width="50%"><img src="docs/screenshots/board-dark.png" alt="The same board in the dark theme"><br><sub><b>Dark theme.</b> Black and blue; the light theme is white and blue.</sub></td>
+</tr>
+<tr>
+<td><img src="docs/screenshots/bugs.png" alt="A bug report open in a drawer, linked to the test case that found it"><br><sub><b>A bug report</b>, linked to the test case that found it.</sub></td>
+<td><img src="docs/screenshots/traceability.png" alt="The traceability matrix: each requirement with its test cases, sessions and bugs, and the gaps"><br><sub><b>Traceability.</b> Every requirement with the tests, sessions and bugs behind it, and what is still uncovered.</sub></td>
+</tr>
+<tr>
+<td><img src="docs/screenshots/summary.png" alt="The test summary report: verdict, results and exit criteria"><br><sub><b>Test summary.</b> A verdict, the results, and the plan's exit criteria checked against them.</sub></td>
+<td><img src="docs/screenshots/summary-score.png" alt="The hidden defect assessment: score, defects found, triggered but not reported, and not found"><br><sub><b>The score.</b> Three verified defects, two triggered but not reported, five not found. Points depend on severity and on how well each report is written.</sub></td>
+</tr>
+<tr>
+<td><img src="docs/screenshots/home.png" alt="The home page: your path in four levels, and progress in each of the four practice systems"><br><sub><b>Your path</b> from simple to advanced, ticked off by what you actually did, and progress in each practice system.</sub></td>
+<td><img src="docs/screenshots/tour.png" alt="The tour, pointing at the practice system switcher"><br><sub><b>The tour</b> is about the system you are on, and points at the real sidebar item.</sub></td>
+</tr>
+<tr>
+<td><img src="docs/screenshots/loans.png" alt="Lendwell's application, at the review step with the quote"><br><sub><b>Lendwell</b> (advanced): a loan application with a live quote, where the defects hide in boundaries and calculations.</sub></td>
+<td><img src="docs/screenshots/booking.png" alt="Marlowe Clinic's booking form, choosing a time"><br><sub><b>Marlowe Clinic</b> (expert): appointment booking, where the defects depend on dates and the diary.</sub></td>
+</tr>
+</table>
+
 ## What works today
 
 - **Landing page** (`/`): the front door. What Assertly is, the workflow it follows, the practice systems (read from the same registry as the app, so a new system appears by itself), how scoring works, and a way in with no account. It never redirects: someone who is signed in sees a link to their workspace instead of "Sign in".
@@ -51,6 +80,7 @@ Open the address that `next dev` prints (http://localhost:3000 by default). Acco
 | `npm run check` | Lint, typecheck and unit tests together |
 | `npm run e2e` | End-to-end and accessibility tests (Playwright; builds and serves the app on port 3100) |
 | `npm run e2e:ui` | The same, in Playwright's interactive UI |
+| `npm run screenshots` | Regenerates the pictures in `docs/screenshots` (builds the app on port 3200, tells one story through the real screens, and fails if it does not come out as told) |
 
 The e2e suite starts its own servers in their own folders (`.next-e2e-prod` on port 3100 and a dev server in `.next-e2e` on 3101), so it never disturbs a dev server you have running. It includes a dev-mode console check, because React only reports hydration mismatches and misuse there.
 
@@ -77,7 +107,8 @@ lib/
   workspace/       test case and bug models, reducer, selectors, form schemas, scoring, requirements, seed data, local store
   sandbox/novabank/  the seeded-defect registry (answer key), the app engine and its browser store
   actions.ts       server actions that validate each challenge
-docs/              ARCHITECTURE.md, design/mockup-v4.html
+docs/              ARCHITECTURE.md, design/, screenshots/ (generated: see npm run screenshots)
+scripts/           brand assets, and screenshots/ (the generator behind docs/screenshots)
 tests/             unit tests (Vitest) and e2e/ (Playwright, including automated accessibility scans)
 ```
 
