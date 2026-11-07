@@ -10,7 +10,9 @@ const NO_EMAIL_PORT = 3102
 // nothing external is touched. Auth rate limiting is off because the suite creates many accounts in seconds.
 const baseEnv = { PGLITE_DIR: "memory://", BETTER_AUTH_SECRET: "e2e-secret-e2e-secret-e2e-secret-0000", AUTH_RATE_LIMIT: "off" }
 // Emails are kept in memory, where /api/test/outbox lets a test read them (that transport only runs on localhost)
-const serverEnv = { ...baseEnv, EMAIL_TRANSPORT: "memory" }
+// GitHub sign-in is switched on with placeholder values, so its button and the request behind it can be tested; nothing here
+// ever reaches GitHub (the tests answer for it). The no-email server below has neither, to test the site with nothing set up.
+const serverEnv = { ...baseEnv, EMAIL_TRANSPORT: "memory", GITHUB_CLIENT_ID: "e2e-github-client-id", GITHUB_CLIENT_SECRET: "e2e-github-client-secret" }
 
 export default defineConfig({
   testDir: "./tests/e2e",

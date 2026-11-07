@@ -51,6 +51,14 @@ test.describe("with email switched off", () => {
     await expect(profile.getByRole("button", { name: "Send confirmation email" })).toHaveCount(0)
   })
 
+  test("offers no GitHub button either, because nothing for it is set up here", async ({ page }) => {
+    for (const path of ["/sign-in", "/sign-up"]) {
+      await page.goto(path)
+      await expect(page.getByRole("button", { name: /Sign in|Create account/ }).first(), path).toBeVisible()
+      await expect(page.getByRole("button", { name: "Continue with GitHub" }), path).toHaveCount(0)
+    }
+  })
+
   test("the test outbox is not there", async ({ page }) => {
     expect((await page.request.get("/api/test/outbox")).status()).toBe(404)
     expect((await page.request.delete("/api/test/outbox")).status()).toBe(404)

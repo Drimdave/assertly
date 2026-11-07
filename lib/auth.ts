@@ -59,6 +59,15 @@ function build() {
     }),
     advanced: { backgroundTasks: { handler: inBackground } },
     socialProviders: github,
+    // Signing in with GitHub with an email that already has an account attaches GitHub to that account only if that
+    // account's email was confirmed. Sign-up here does not require confirming, so without this a stranger could register
+    // someone else's address with a password of their own, and the owner's later GitHub sign-in would join the two and
+    // leave the stranger holding the password. This is the library's default; it is written out so a change of default
+    // cannot quietly open it, and tests/auth/github.test.ts fails if it is turned off.
+    account: { accountLinking: { enabled: true, requireLocalEmailVerified: true } },
+    // A return from GitHub that cannot be used (waited too long, opened twice, cancelled) lands on our sign-in page with
+    // ?error=..., which says something kind (lib/auth-errors.ts), and not on the library's own plain error page
+    onAPIError: { errorURL: "/sign-in" },
     // Deleting an account asks for the password. Someone with no password (they signed in with GitHub) is let through
     // only on a session this new, so a stolen session cookie cannot delete an account an hour later. Better Auth's own
     // default for "new" is a whole day.

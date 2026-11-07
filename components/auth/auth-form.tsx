@@ -30,10 +30,10 @@ export function safeNext(next: string | undefined): string {
   return next && next.startsWith("/") && !next.startsWith("//") && !next.includes("\\") ? next : "/app"
 }
 
-export function AuthForm({ mode, next, github, forgot = false, notice }: { mode: "sign-in" | "sign-up"; next?: string; github: boolean; forgot?: boolean; notice?: string }) {
+export function AuthForm({ mode, next, github, forgot = false, notice, initialError }: { mode: "sign-in" | "sign-up"; next?: string; github: boolean; forgot?: boolean; notice?: string; initialError?: string }) {
   const router = useRouter()
   const isSignUp = mode === "sign-up"
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(initialError ?? null)
   const {
     register,
     handleSubmit,
@@ -105,7 +105,10 @@ export function AuthForm({ mode, next, github, forgot = false, notice }: { mode:
             type="button"
             variant="outline"
             className="w-full"
-            onClick={() => authClient.signIn.social({ provider: "github", callbackURL: target })}
+            onClick={() =>
+              // Problems on the way (cancelled, email already in use) come back to this page with ?error=..., not to a library page
+              authClient.signIn.social({ provider: "github", callbackURL: target, errorCallbackURL: `${isSignUp ? "/sign-up" : "/sign-in"}${next ? `?next=${encodeURIComponent(next)}` : ""}` })
+            }
           >
             Continue with GitHub
           </Button>
