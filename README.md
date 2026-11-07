@@ -123,7 +123,8 @@ Tokens, density and component rules come from [docs/design/mockup-v4.html](docs/
 - The rate limit on challenge submissions is shared by every visitor (one in-memory counter). It becomes per-session in Phase 3, with accounts.
 - Build-time dev dependencies (the Tailwind 3 and ESLint chains) carry advisories with no non-breaking fix. They do not ship to users. Moving to Tailwind 4 is planned.
 - The hidden-defect answer key ships with the app (and the repository is public), so a determined user can read it. That is fine for a practice tool. A share link never contains it, but scores are computed from data the browser sends, so a shared score is not tamper-proof.
-- Password reset and email confirmation are built and tested, and switch on when an email provider is configured (`RESEND_API_KEY`, `EMAIL_FROM` and `BETTER_AUTH_URL`: see `.env.example`). Until then the site does not offer them, and a forgotten password cannot be recovered. They have not yet sent a real email: the request is built to Resend's published format and tested against a stand-in, and the flows are tested end to end with an in-memory transport.
+- Visits to the live site are counted with Vercel Web Analytics (no cookies, nothing personal); it loads nowhere else.
+- Password reset and email confirmation are built and tested, and switch on when an email provider is configured (`RESEND_API_KEY`, `EMAIL_FROM` and `BETTER_AUTH_URL`: see `.env.example`). Until then the site does not offer them, and a forgotten password cannot be recovered. One real test email has gone through Resend's testing sender to its owner's own address and was delivered. Nobody else can be emailed until a domain is verified, so the live site keeps this switched off.
 - GitHub sign-in is wired but untested without real OAuth credentials.
 - Conflicts between two devices editing at once are resolved by taking the newer saved copy; the other device is told it was updated.
 
