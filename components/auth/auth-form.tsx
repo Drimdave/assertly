@@ -10,6 +10,7 @@ import { z } from "zod"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { nameField, newPasswordField } from "@/lib/account/schemas"
 import { authClient } from "@/lib/auth-client"
 
 const signInSchema = z.object({
@@ -17,9 +18,9 @@ const signInSchema = z.object({
   password: z.string().min(1, "Enter your password"),
 })
 const signUpSchema = z.object({
-  name: z.string().trim().min(1, "Enter your name").max(80, "Keep your name under 80 characters"),
+  name: nameField,
   email: z.string().trim().email("Enter a valid email address"),
-  password: z.string().min(8, "Use at least 8 characters").max(128, "Use at most 128 characters"),
+  password: newPasswordField,
 })
 
 type Values = { name?: string; email: string; password: string }

@@ -24,6 +24,11 @@ function build() {
     secret: process.env.BETTER_AUTH_SECRET ?? (process.env.NODE_ENV === "production" ? undefined : "assertly-development-secret-do-not-use-in-production"),
     emailAndPassword: { enabled: true, minPasswordLength: 8, maxPasswordLength: 128, autoSignIn: true },
     socialProviders: github,
+    // Deleting an account asks for the password. Someone with no password (they signed in with GitHub) is let through
+    // only on a session this new, so a stolen session cookie cannot delete an account an hour later. Better Auth's own
+    // default for "new" is a whole day.
+    user: { deleteUser: { enabled: true } },
+    session: { freshAge: 60 * 5 },
     // The e2e suite signs up many accounts from one address in seconds
     rateLimit: { enabled: process.env.AUTH_RATE_LIMIT !== "off" },
     plugins: [nextCookies()],

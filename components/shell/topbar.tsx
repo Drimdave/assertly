@@ -36,6 +36,7 @@ function crumbsFor(pathname: string): Crumb[] {
     return [...crumbs, { label: names[page] ?? page }]
   }
   if (section === "app") return [{ label: "For you" }]
+  if (section === "account") return [{ label: "Account" }]
   if (section === "learn") {
     const challenge = slug ? getChallenge(slug) : undefined
     return challenge

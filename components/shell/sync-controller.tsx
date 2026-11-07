@@ -3,11 +3,9 @@
 import { useEffect, useRef } from "react"
 import { toast } from "sonner"
 
-import { resetOnboarding } from "@/lib/onboarding/flags"
-import { clearSyncMeta, startSync, stopSync } from "@/lib/persistence/sync"
+import { startSync, stopSync } from "@/lib/persistence/sync"
+import { wipeLocalCopy } from "@/lib/persistence/wipe"
 import { useSession } from "@/lib/auth-client"
-import { resetAllSandboxes } from "@/lib/sandbox/stores"
-import { workspace } from "@/lib/workspace/store"
 
 /**
  * Renders nothing. While someone is signed in it keeps their workspace saved on the server; when they sign out it
@@ -23,10 +21,7 @@ export function SyncController() {
     if (!userId) {
       if (wasSignedIn.current) {
         wasSignedIn.current = false
-        workspace.reset()
-        resetAllSandboxes()
-        clearSyncMeta()
-        resetOnboarding()
+        wipeLocalCopy()
       }
       return
     }

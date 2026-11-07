@@ -44,18 +44,23 @@ export function AccountMenu() {
       <p role="status" className={sync === "error" ? "text-xs text-danger" : "text-xs text-muted-foreground"}>
         {STATUS_TEXT[sync] || " "}
       </p>
-      <Button
-        variant="link"
-        size="sm"
-        className="h-auto p-0 text-xs"
-        onClick={async () => {
-          await signOut()
-          router.push("/sign-in")
-          router.refresh()
-        }}
-      >
-        Sign out
-      </Button>
+      <div className="flex items-center gap-3">
+        <Link href="/account" className="text-xs text-primary underline-offset-4 hover:underline">
+          Account
+        </Link>
+        <Button
+          variant="link"
+          size="sm"
+          className="h-auto p-0 text-xs"
+          onClick={async () => {
+            await signOut()
+            router.push("/sign-in")
+            router.refresh()
+          }}
+        >
+          Sign out
+        </Button>
+      </div>
     </div>
   )
 }
