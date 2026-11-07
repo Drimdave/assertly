@@ -1,10 +1,11 @@
 import { TourDialog } from "@/components/onboarding/tour-dialog"
 import { Sidebar } from "@/components/shell/sidebar"
 import { Topbar } from "@/components/shell/topbar"
+import { APP_ROOT_ID } from "@/lib/app-root"
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex h-dvh print:block print:h-auto">
+    <div id={APP_ROOT_ID} className="flex h-dvh print:block print:h-auto">
       <a
         href="#main"
         className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-[60] focus:rounded-sm focus:bg-primary focus:px-3 focus:py-2 focus:text-sm focus:font-medium focus:text-primary-foreground print:hidden"

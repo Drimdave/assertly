@@ -94,7 +94,7 @@ export default function SelectChallenge() {
         <div className="space-y-2">
           <Label htmlFor="country">Select a Country</Label>
           <Select value={selectedValue} onValueChange={handleValueChange}>
-            <SelectTrigger className="w-full">
+            <SelectTrigger id="country" className="w-full">
               <SelectValue placeholder="Select a country" />
             </SelectTrigger>
             <SelectContent>

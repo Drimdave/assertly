@@ -4,9 +4,41 @@ import * as React from "react"
 import * as SelectPrimitive from "@radix-ui/react-select"
 import { Check, ChevronDown, ChevronUp } from "lucide-react"
 
+import { APP_ROOT_ID } from "@/lib/app-root"
 import { cn } from "@/lib/utils"
 
-const Select = SelectPrimitive.Root
+/**
+ * While the list is open Radix hides the rest of the page from assistive technology (`aria-hidden`), but the page
+ * behind still holds links and buttons that can be focused, which is what the accessibility rule `aria-hidden-focus`
+ * refuses. A dialog escapes it because its overlay tells the checker the page behind is meant to be out of reach; a
+ * dropdown has no overlay. So make it true: the app is inert (not focusable, not clickable, not read) for as long as
+ * the list is open, and not a moment longer, so focus can return to the trigger when it closes.
+ */
+function useInertApp(active: boolean) {
+  React.useEffect(() => {
+    if (!active) return
+    const root = document.getElementById(APP_ROOT_ID)
+    // Nothing to do outside the app shell, and if something else already made it inert, it is theirs to undo
+    if (!root || root.hasAttribute("inert")) return
+    root.setAttribute("inert", "")
+    return () => root.removeAttribute("inert")
+  }, [active])
+}
+
+function Select({ onOpenChange, ...props }: React.ComponentProps<typeof SelectPrimitive.Root>) {
+  // Follow the list whether the parent controls `open` or leaves it to Radix
+  const [open, setOpen] = React.useState(props.open ?? props.defaultOpen ?? false)
+  useInertApp(props.open ?? open)
+  return (
+    <SelectPrimitive.Root
+      {...props}
+      onOpenChange={(next) => {
+        setOpen(next)
+        onOpenChange?.(next)
+      }}
+    />
+  )
+}
 
 const SelectGroup = SelectPrimitive.Group
 
