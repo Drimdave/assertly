@@ -2,7 +2,7 @@
 
 A hands-on QA practice platform. Testers work the whole job (requirement, test plan, test cases, execution, bug reports, test summary) against realistic systems that contain hidden, seeded bugs, and get scored on what they find.
 
-> **Status: Phases 0 to 4 are done; Phase 5 (launch) is in progress.** The workspace, the NovaBank sandbox with scored hidden defects, accounts, saving and share links work today. The test plan editor and exploratory sessions work; four practice systems are playable, see [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+> **Status: live since 2026-11-07. Phases 0 to 4 are done and the launch phase is nearly done.** The site is public, with the first-run tour, PDF export and docs. Still to come: the case study write-up. The optional AI feedback in the original plan has not been built; scoring and matching do not need it. Today the workspace, four practice systems with scored hidden defects (40 in all), accounts and saving, share links, the test plan editor, exploratory sessions and the traceability matrix all work. See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 **Live: https://assertly.vercel.app** (free hosting: Vercel and Neon).
 
@@ -84,7 +84,7 @@ Open the address that `next dev` prints (http://localhost:3000 by default). Acco
 | `npm run e2e:ui` | The same, in Playwright's interactive UI |
 | `npm run screenshots` | Regenerates the pictures in `docs/screenshots` (builds the app on port 3200, tells one story through the real screens, and fails if it does not come out as told) |
 
-The e2e suite starts its own servers in their own folders (`.next-e2e-prod` on port 3100 and a dev server in `.next-e2e` on 3101), so it never disturbs a dev server you have running. It includes a dev-mode console check, because React only reports hydration mismatches and misuse there.
+The e2e suite starts its own servers in their own folders, so it never disturbs a dev server you have running: a production build in `.next-e2e-prod` on port 3100, a second server on that same build on 3102 with email switched off, and a dev server in `.next-e2e` on 3101. It includes a dev-mode console check, because React only reports hydration mismatches and misuse there.
 
 CI runs lint, typecheck, unit tests, a production build and the end-to-end suite on every push. First time running e2e locally: `npx playwright install chromium`.
 
@@ -132,7 +132,7 @@ Tokens, density and component rules come from [docs/design/mockup-v4.html](docs/
 ## Known limits
 
 - The rate limit on the Fundamentals challenge submissions is shared by every visitor (one in-memory counter), and it is not per-session yet.
-- Build-time dev dependencies (the Tailwind 3 and ESLint chains) carry advisories with no non-breaking fix. They do not ship to users. Moving to Tailwind 4 is planned.
+- `npm audit` reports 16 moderate advisories (none high or critical) that trace to five packages: `esbuild` (inside `drizzle-kit`), `fast-uri` (inside the form library's validator), and `glob`, `minimatch` and `postcss-selector-parser` (inside Tailwind 3, ESLint and their helpers). None is imported by the app or present in its production build. A non-breaking `npm audit fix` exists for four of the five; the `esbuild` one needs an older `drizzle-kit`, which is a breaking change. Not yet applied. Checked 2026-11-14.
 - The hidden-defect answer key ships with the app (and the repository is public), so a determined user can read it. That is fine for a practice tool. A share link never contains it, but scores are computed from data the browser sends, so a shared score is not tamper-proof.
 - Visits to the live site are counted with Vercel Web Analytics (no cookies, nothing personal); it loads nowhere else.
 - Password reset and email confirmation are built and tested, and switch on when an email provider is configured (`RESEND_API_KEY`, `EMAIL_FROM` and `BETTER_AUTH_URL`: see `.env.example`). Until then the site does not offer them, and a forgotten password cannot be recovered. One real test email has gone through Resend's testing sender to its owner's own address and was delivered. Nobody else can be emailed until a domain is verified, so the live site keeps this switched off.
