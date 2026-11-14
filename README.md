@@ -137,7 +137,7 @@ Tokens, density and component rules come from [docs/design/mockup-v4.html](docs/
 - Visits to the live site are counted with Vercel Web Analytics (no cookies, nothing personal); it loads nowhere else.
 - Password reset and email confirmation are built and tested, and switch on when an email provider is configured (`RESEND_API_KEY`, `EMAIL_FROM` and `BETTER_AUTH_URL`: see `.env.example`). Until then the site does not offer them, and a forgotten password cannot be recovered. One real test email has gone through Resend's testing sender to its owner's own address and was delivered. Nobody else can be emailed until a domain is verified, so the live site keeps this switched off.
 - Signing out clears this browser's copy of everything. The tour's "dismissed" flag and which pages you have opened are saved in your account, so signing back in (or opening the site on another device) does not show the tour again or un-tick "Your path"; a guest's flags are added to the account when they sign up.
-- GitHub sign-in works on the live site (first real sign-in: 2026-11-07). The refusal for an email that already has an unconfirmed password account is tested only against a pretend GitHub, not the real one; and while email is off nobody can confirm an email, so such people sign in with their password.
+- GitHub sign-in works on the live site (first real sign-in: 2026-11-07). An email that already has an unconfirmed password account is refused with a clear message (tried on the live site with the real GitHub); and while email is off nobody can confirm an email, so such people sign in with their password.
 - Conflicts between two devices editing at once are resolved by taking the newer saved copy; the other device is told it was updated.
 
 ## License
