@@ -35,7 +35,7 @@ export function PathPanel() {
               </span>
               <span className="text-muted-foreground">{level.complete ? "Done" : ready && current?.id === level.id ? "Up next" : ""}</span>
               <span className="ml-auto tabular-nums text-muted-foreground">
-                {ready ? level.done : 0} of {level.steps.length}
+                {ready ? `${level.done} of ${level.steps.length}` : "\u00a0"}
               </span>
             </summary>
             <div className="px-4 pb-4">

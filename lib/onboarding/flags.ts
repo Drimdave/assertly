@@ -117,6 +117,8 @@ let giveUpTimer: ReturnType<typeof setTimeout> | null = null
 /** How long anything waits to hear from the account before going ahead on what this browser knows. */
 export const GIVE_UP_MS = 4000
 
+const pendingListeners = new Set<() => void>()
+
 /**
  * Says whether we are still waiting to hear who is signed in and what their account says. Waiting always ends: if nothing
  * clears it within GIVE_UP_MS (a slow account, a session that never arrives) it clears itself and the tour goes ahead.
@@ -126,6 +128,7 @@ export function setAccountPending(value: boolean) {
   giveUpTimer = value ? setTimeout(() => setAccountPending(false), GIVE_UP_MS) : null
   if (accountPending === value) return
   accountPending = value
+  pendingListeners.forEach((l) => l())
   if (!value && offerWanted) {
     offerWanted = false
     offerTourOnce()
@@ -133,6 +136,18 @@ export function setAccountPending(value: boolean) {
 }
 // A page that has just loaded is waiting too, until the sync controller has seen who is there
 if (typeof window !== "undefined") setAccountPending(true)
+
+/** Lets a component show something other than a made-up zero while the account has not yet said what it holds. */
+export function useAccountPending(): boolean {
+  return useSyncExternalStore(
+    (listener) => {
+      pendingListeners.add(listener)
+      return () => void pendingListeners.delete(listener)
+    },
+    () => accountPending,
+    () => false,
+  )
+}
 
 /** What the hook would give right now, for code that is not a component (and for the tests). */
 export const peekOnboarding = (): Snapshot => snapshot()

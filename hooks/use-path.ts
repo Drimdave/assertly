@@ -5,6 +5,7 @@ import { useMemo } from "react"
 import { useIsClient } from "@/hooks/use-is-client"
 import { useLearnState } from "@/hooks/use-learn-state"
 import { useSandboxState } from "@/hooks/use-sandbox"
+import { useWaitingForAccount } from "@/hooks/use-waiting-for-account"
 import { useWorkspaceState } from "@/hooks/use-workspace"
 import { useOnboarding } from "@/lib/onboarding/flags"
 import { buildPath, currentLevel, pathTotals, type PathLevel, type ProjectProgress } from "@/lib/onboarding/path"
@@ -25,7 +26,9 @@ export interface PathState {
 
 /** "Your path", worked out from what the tester has actually done, in every practice system. */
 export function usePath(): PathState {
-  const ready = useIsClient()
+  const isClient = useIsClient()
+  const waiting = useWaitingForAccount()
+  const ready = isClient && !waiting // until then: no progress shown, rather than a zero that is about to change
   const workspace = useWorkspaceState()
   const sandbox = useSandboxState()
   const hits = useAllHits()

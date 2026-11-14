@@ -91,6 +91,7 @@ test.describe("the account page", () => {
     await expect(profile.getByText("Email and password")).toBeVisible()
     await expect(page.getByRole("region", { name: "Password" })).toBeVisible()
     await expect(page.getByRole("region", { name: "Delete account" })).toBeVisible()
+    await expect(page.getByText("Your name, how you sign in, and your data.")).toBeVisible()
   })
 
   test("renaming shows the new name everywhere and keeps it after a reload", async ({ page }) => {
@@ -259,6 +260,7 @@ test.describe("someone who signs in with GitHub", () => {
     await expect(page.getByRole("region", { name: "Profile" }).getByText("GitHub", { exact: true })).toBeVisible()
     await expect(page.getByRole("region", { name: "Password" })).toHaveCount(0)
     await expect(page.getByText("You sign in with GitHub, so there is no password to change here.")).toBeVisible()
+    await expect(page.getByText("Your name, how you sign in, and your data.")).toBeVisible() // not "your password", which this account does not have
 
     await page.getByRole("button", { name: "Delete account" }).click()
     const dialog = alertDialog(page)

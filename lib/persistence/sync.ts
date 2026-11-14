@@ -59,6 +59,9 @@ function writeMeta(meta: Meta | null) {
 /** Forget the account link, e.g. when signing out. */
 export const clearSyncMeta = () => writeMeta(null)
 
+/** Whether this browser already holds a copy it synced with an account (it is removed at sign-out). False on the server. */
+export const hasSyncMeta = () => typeof window !== "undefined" && readMeta() !== null
+
 /**
  * The backup `startSync` keeps of what this browser held just before an account's copy replaced it. It is only a safety net
  * for the moment of sign-in; it goes with everything else when the browser is cleared (sign-out, a deleted account), so a

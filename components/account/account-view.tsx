@@ -36,7 +36,7 @@ export function AccountView({ mail, confirmLinkFailed }: { mail: boolean; confir
     <div className="mx-auto max-w-2xl space-y-6 px-4 py-8 sm:px-6">
       <div>
         <h1 className="text-heading-lg tracking-tight">Account</h1>
-        <p className="text-sm text-muted-foreground">Your name, your password, and your data.</p>
+        <p className="text-sm text-muted-foreground">Your name, how you sign in, and your data.</p>
       </div>
 
       {isPending ? (

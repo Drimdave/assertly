@@ -79,10 +79,31 @@ async function recordDialogs(context: BrowserContext) {
 }
 const dialogEverSeen = (page: Page) => page.evaluate(() => (window as unknown as Seen).__dialogSeen === true)
 
+type PathSeen = { __pathHeaders?: string[] }
+
+/**
+ * Records, from before each page loads, every different text "Your path" has shown as its count ("3 of 17 done"), in order.
+ * Looking after the fact cannot tell a count that was right all along from a zero that showed for a second and then changed.
+ */
+async function recordPathHeader(context: BrowserContext) {
+  await context.addInitScript(() => {
+    const shown: string[] = []
+    ;(window as unknown as PathSeen).__pathHeaders = shown
+    new MutationObserver(() => {
+      const text = document.querySelector('section[aria-label="Your path"] header span')?.textContent?.trim()
+      if (text && shown[shown.length - 1] !== text) shown.push(text)
+    }).observe(document, { childList: true, subtree: true, characterData: true })
+  })
+}
+const pathHeaders = (page: Page) => page.evaluate(() => (window as unknown as PathSeen).__pathHeaders ?? [])
+/** Found by its text, not by role: a tour that opens over the page hides everything behind it from role lookups. */
+const pathCount = (page: Page) => page.locator('section[aria-label="Your path"] header').getByText(/of 17 done/)
+
 /** A browser that has never seen the site, which is what "a new device" is. */
 async function newDevice(browser: Browser) {
   const context = await browser.newContext()
   await recordDialogs(context)
+  await recordPathHeader(context)
   return { context, page: await context.newPage() }
 }
 
@@ -187,6 +208,68 @@ test.describe("another device", () => {
     await signUp(other.page)
     await expect(tour(other.page)).toBeVisible()
     await other.context.close()
+  })
+})
+
+test.describe("'Your path' while the account is still answering", () => {
+  test("shows no progress until the account has said what it holds, instead of a zero that then changes", async ({ page, browser }) => {
+    const email = await signUp(page)
+    await doTheThings(page) // three steps ticked, all of them from pages opened
+
+    const other = await newDevice(browser)
+    const slow = async (route: import("@playwright/test").Route) => {
+      if (route.request().method() === "GET") await new Promise((r) => setTimeout(r, 1800))
+      await route.continue()
+    }
+    await other.page.route("**/api/onboarding", slow)
+    await other.page.route("**/api/workspace", slow)
+    await signIn(other.page, email)
+    await other.page.waitForTimeout(1300) // the account is still thinking
+    expect(await pathHeaders(other.page), "a count was shown while the account was still answering").toEqual([])
+    await expect(other.page.locator('section[aria-label="Your path"] summary').getByText(/^\d+ of \d+$/)).toHaveCount(0) // nor a "0 of 5" on a level
+
+    await expect(pathCount(other.page)).toHaveText("3 of 17 done")
+    expect(await pathHeaders(other.page), "the count changed after it was first shown").toEqual(["3 of 17 done"])
+    await other.context.close()
+  })
+
+  test("goes ahead on what the browser has if the account is very slow, rather than staying blank", async ({ page, browser }) => {
+    const email = await signUp(page)
+    await doTheThings(page)
+
+    const other = await newDevice(browser)
+    let answered = false
+    const stuck = async (route: import("@playwright/test").Route) => {
+      if (route.request().method() === "GET") {
+        await new Promise((r) => setTimeout(r, 9000))
+        answered = true
+      }
+      await route.continue()
+    }
+    await other.page.route("**/api/onboarding", stuck)
+    await other.page.route("**/api/workspace", stuck)
+    await signIn(other.page, email)
+    await expect(pathCount(other.page)).toBeVisible({ timeout: 7500 }) // after the few seconds it is willing to wait
+    expect(answered, "it showed only once the account had answered, so it would wait for ever").toBe(false)
+    await other.context.close()
+  })
+
+  test("shows the progress it already has at once, on a browser that holds the account's copy, even if the account is slow", async ({ page }) => {
+    await signUp(page)
+    await doTheThings(page) // this browser now holds the copy it synced with the account
+    let answered = false
+    const slow = async (route: import("@playwright/test").Route) => {
+      if (route.request().method() === "GET") {
+        await new Promise((r) => setTimeout(r, 3000))
+        answered = true
+      }
+      await route.continue()
+    }
+    await page.route("**/api/onboarding", slow)
+    await page.route("**/api/workspace", slow)
+    await page.reload()
+    await expect(pathCount(page)).toHaveText("3 of 17 done", { timeout: 2000 })
+    expect(answered, "it waited for the account when it did not need to").toBe(false)
   })
 })
 
