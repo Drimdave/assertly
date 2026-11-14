@@ -54,7 +54,7 @@ NovaBank after an afternoon of testing: three of its ten hidden defects found an
 - **Tour and Your path** (`/app`): a ten-step, skippable walkthrough opens the first time you reach the home page ("Step 3 of 10", Back, Next, Skip, arrow keys work) and can be reopened from the sidebar. It is about the system you are on, so reopened on another system's page it names that system and links to its pages, and it has steps for choosing a system and for the traceability matrix. Each step dims the page and highlights the real sidebar item it is about, and the highlight glides from one item to the next. Under it, **Your path** lists what to do from simple to advanced in four levels, and ticks each step off by what you actually did: nothing is locked, it just shows where to go next. The skills count in any system, and the last level asks for a hidden defect in each of the other systems. The sidebar follows the same order: Plan, Test, Report, with the practice app one click away.
 - **For you** (`/app`): your test run status, Fundamentals progress and what to do next.
 
-- **Accounts and saving** (`/sign-in`, `/sign-up`): optional. As a guest your work stays in this browser. Sign up and it is saved to your account and follows you to any device; whatever you did as a guest becomes your workspace. Sign out and this browser is cleared. Email and password work out of the box; GitHub sign-in turns on when you configure it. The account page (`/account`) changes your name and password, signs your other devices out, and deletes the account with everything saved to it, including your share links. A forgotten password is reset by email, and a link sent at sign-up confirms the address.
+- **Accounts and saving** (`/sign-in`, `/sign-up`): optional. As a guest your work stays in this browser. Sign up and it is saved to your account and follows you to any device; whatever you did as a guest becomes your workspace. Sign out and this browser is cleared. Email and password work out of the box; GitHub sign-in is on at the live site and turns on elsewhere when you configure it. The account page (`/account`) changes your name and password, signs your other devices out, and deletes the account with everything saved to it, including your share links. Where an email provider is set up, a forgotten password is reset by email and a link sent at sign-up confirms the address; the live site does not have one yet (see Known limits).
 - **Share links** (on the test summary): a public, read-only copy of your report that anyone can open without an account. Defects you have not found stay hidden in it. You can revoke a link at any time.
 
 "Reset sample data" restores the starter project.
@@ -90,25 +90,36 @@ CI runs lint, typecheck, unit tests, a production build and the end-to-end suite
 
 ## Stack
 
-Next.js (App Router), React, TypeScript (strict), Tailwind CSS, Radix primitives, react-hook-form + zod, sonner, IBM Plex Sans and JetBrains Mono via `next/font`, Vitest. Planned: Postgres on Neon with Drizzle, Better Auth, `@dnd-kit` for the board, Playwright. Everything is free to run.
+Next.js (App Router), React, TypeScript (strict), Tailwind CSS, Radix primitives, react-hook-form + zod, sonner, IBM Plex Sans and JetBrains Mono via `next/font`, `@dnd-kit` for the board, Better Auth for accounts (email and password, and GitHub), Drizzle with Postgres (Neon in production, an in-memory PGlite database in development and tests), Vitest and Playwright. Hosted on Vercel and Neon, both on their free plans. Everything is free to run.
 
 ## Project layout
 
 ```
 app/               routes (thin)
-  (shell)/         pages that share the app shell: /app, /learn, /learn/[slug]
+  (shell)/         pages that share the app shell: /app, /learn, /learn/[slug], /account
+  (auth)/          sign-in, sign-up, forgot and reset password
+  api/             auth (Better Auth), workspace (saving), onboarding, share links
+  sandbox/         the practice systems themselves
 components/
-  shell/           sidebar, top bar, theme toggle
+  shell/           sidebar, top bar, theme toggle, the sync controller
   learn/           Fundamentals UI (table, progress panels)
   workspace/       test cases table, board and case drawer
   challenges/      the 12 challenge components
+  account/, auth/  the account page and the sign-in forms
+  onboarding/      the tour and "Your path"
   ui/              design-system primitives
 hooks/             client hooks
 lib/
   learn/           challenge catalog, scenarios, detection, progress, local store
   workspace/       test case and bug models, reducer, selectors, form schemas, scoring, requirements, seed data, local store
-  sandbox/novabank/  the seeded-defect registry (answer key), the app engine and its browser store
+  sandbox/, systems/  the seeded-defect registries (answer keys), the app engines and their browser stores
+  db/, share/      the database schema and repository, and share-link snapshots
+  persistence/     saving to the account, and clearing this browser at sign-out
+  onboarding/      the tour and path flags, and their account sync
+  email/           password-reset and confirmation mail (Resend, or a test outbox)
+  auth.ts          the Better Auth configuration
   actions.ts       server actions that validate each challenge
+drizzle/           database migrations (run on every deploy)
 docs/              ARCHITECTURE.md, design/, screenshots/ (generated: see npm run screenshots)
 scripts/           brand assets, and screenshots/ (the generator behind docs/screenshots)
 tests/             unit tests (Vitest) and e2e/ (Playwright, including automated accessibility scans)
@@ -120,7 +131,7 @@ Tokens, density and component rules come from [docs/design/mockup-v4.html](docs/
 
 ## Known limits
 
-- The rate limit on challenge submissions is shared by every visitor (one in-memory counter). It becomes per-session in Phase 3, with accounts.
+- The rate limit on the Fundamentals challenge submissions is shared by every visitor (one in-memory counter), and it is not per-session yet.
 - Build-time dev dependencies (the Tailwind 3 and ESLint chains) carry advisories with no non-breaking fix. They do not ship to users. Moving to Tailwind 4 is planned.
 - The hidden-defect answer key ships with the app (and the repository is public), so a determined user can read it. That is fine for a practice tool. A share link never contains it, but scores are computed from data the browser sends, so a shared score is not tamper-proof.
 - Visits to the live site are counted with Vercel Web Analytics (no cookies, nothing personal); it loads nowhere else.
